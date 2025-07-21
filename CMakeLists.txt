@@ -52,6 +52,7 @@ file(GLOB_RECURSE PHOTON_SOURCES
     "${PROJECT_SOURCE_DIR}/include/photon/*.h"
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/*.cu"
+    "${PROJECT_SOURCE_DIR}/src/*.h"
 )
 
 # Create the static library
@@ -79,6 +80,9 @@ set_target_properties(${TARGET_NAME} PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_ARCHITECTURES "75"
 )
+
+# Filters
+source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/device_context_impl.h)
 
 # Optional: Add tests if enabled
 if(PHOTON_BUILD_TESTS)
