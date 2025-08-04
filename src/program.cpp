@@ -19,40 +19,8 @@
  *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *	SOFTWARE.
  */
-#pragma once
 
-#include <optix.h>
-#include "device_context.h"
+#include "program_impl.h"
 
-namespace PHOTON_NAMESPACE
-{
-	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
-	*****************************************************************************/
+using namespace photon;
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
-	{
-
-	public:
-
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
-
-		virtual ~DeviceContextImpl();
-
-	public:
-
-		OptixDeviceContext handle() { return m_hContext; }
-
-		virtual ns::Device * device() const override { return m_device; }
-
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions, const OptixPipelineCompileOptions & pipelineCompileOptions, const unsigned char * ptxStr, size_t ptxSize) override;
-
-	private:
-
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
-	};
-}

@@ -19,40 +19,31 @@
  *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *	SOFTWARE.
  */
-#pragma once
 
-#include <optix.h>
-#include "device_context.h"
+#include "module_impl.h"
+#include "device_context_impl.h"
+#include <nucleus/logger.h>
+#include <optix_stubs.h>
 
-namespace PHOTON_NAMESPACE
+using namespace photon;
+
+/*********************************************************************************
+**********************************    Module    **********************************
+*********************************************************************************/
+
+ModuleImpl::ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule)
+	: m_deviceContext(deviceContext), m_hModule(hModule)
 {
-	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
-	*****************************************************************************/
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
+}
+
+
+ModuleImpl::~ModuleImpl()
+{
+	if (m_deviceContext != nullptr)
 	{
+		OptixResult eResult = optixDeviceContextDestroy(m_deviceContext->handle());
 
-	public:
-
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
-
-		virtual ~DeviceContextImpl();
-
-	public:
-
-		OptixDeviceContext handle() { return m_hContext; }
-
-		virtual ns::Device * device() const override { return m_device; }
-
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions, const OptixPipelineCompileOptions & pipelineCompileOptions, const unsigned char * ptxStr, size_t ptxSize) override;
-
-	private:
-
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
-	};
+		NS_ERROR_LOG_IF(eResult != OPTIX_SUCCESS, "Failed to destroy Optix context: %s.", optixGetErrorString(eResult));
+	}
 }

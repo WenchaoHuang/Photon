@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,38 +21,26 @@
  */
 #pragma once
 
-#include <optix.h>
-#include "device_context.h"
+#include "fwd.h"
+#include <string>
 
-namespace PHOTON_NAMESPACE
+namespace photon
 {
 	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
+	********************************    Module    ********************************
 	*****************************************************************************/
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
+	class Module
 	{
 
 	public:
 
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
+		virtual ~Module() {}
 
-		virtual ~DeviceContextImpl();
+		//virtual std::unique_ptr<MissProg> creatMissProg(std::string funcName) = 0;
 
-	public:
+		//virtual std::unique_ptr<RaygenProg> createRaygenProg(std::string funcName) = 0;
 
-		OptixDeviceContext handle() { return m_hContext; }
-
-		virtual ns::Device * device() const override { return m_device; }
-
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions, const OptixPipelineCompileOptions & pipelineCompileOptions, const unsigned char * ptxStr, size_t ptxSize) override;
-
-	private:
-
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
+		//virtual std::unique_ptr<HitProg> createHitProg(std::string funcName0, std::string funcName1 = "", std::string funcname2 = "") = 0;
 	};
 }

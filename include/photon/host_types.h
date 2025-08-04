@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,10 +21,9 @@
  */
 #pragma once
 
-#include "fwd.h"
-#include <optix.h>
+#include <nucleus/array_proxy.h>
 
-namespace PHOTON_NAMESPACE
+namespace photon
 {
 	/*****************************************************************************
 	******************************    DeviceProp    ******************************
@@ -32,7 +31,6 @@ namespace PHOTON_NAMESPACE
 
 	struct DeviceProp
 	{
-		//	Optix 7.0.0
 		unsigned int	version;							//!	The RT core version supported by the device (0 for no support, 10 for version 1.0).
 		unsigned int	clusterAccel;						//!	Flag specifying support for cluster acceleration structure builds.
 		unsigned int	maxSbtOffset;						//!	The maximum value for OptixInstance::sbtOffset.
@@ -43,61 +41,15 @@ namespace PHOTON_NAMESPACE
 		unsigned int	maxSbtRecordsPerGAS;				//!	The maximum number of instances that can be added to a single Instance Acceleration Structure (IAS).
 		unsigned int	maxTraversableGraphDepth;			//!	Maximum value to pass into optixPipelineSetStackSize.
 		unsigned int	numBitsInstanceVisiblityMask;		//!	The number of bits available for the OptixInstance::visibilityMask.
-		//	Optix 8.1.0
+
+	#if (OPTIX_VERSION >= 80100)
 		unsigned int	shaderExecutionReordering;			//!	Flag specifying capabilities of the optixReorder() device function.
-		//	Optix 9.0.0
+	#endif
+	#if (OPTIX_VERSION >= 90000)
 		unsigned int	cooperativeVector;					//!	Flag specifying whether cooperative vector support is enabled for this device.
 		unsigned int	maxClusterVertices;					//!	The maximum unique vertices per cluster in a cluster acceleration structure builds.
 		unsigned int	maxClusterTriangles;				//!	The maximum triangles per cluster in a cluster acceleration structure builds.
 		unsigned int	maxStructuredGridResolution;		//!	The maximum resolution per cluster in a structured cluster acceleration structure builds.
-	};
-
-	/*****************************************************************************
-	****************************    DeviceContext    *****************************
-	*****************************************************************************/
-
-	/**
-	 *	@brief		Abstract interface for an OptiX device context.
-	 * 
-	 *	This class represents a wrapper around an OptiX device context.
-	 *	It provides access to device-specific properties and the underlying device itself.
-	 *	Derived implementations are responsible for managing the actual OptiX context and
-	 *	associated resources such as modules, pipelines, and acceleration structures.
-	 */
-	class DeviceContext
-	{
-
-	public:
-
-		//!	@brief	Virtual destructor.
-		virtual ~DeviceContext() {}
-
-		//!	@brief		Return pointer to the device associated with.
-		virtual ns::Device * device() const = 0;
-
-		//!	@brief		Return pointer to the properties.
-		virtual const DeviceProp & properties() const = 0;
-
-
-		virtual std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions,
-													 const OptixPipelineCompileOptions & pipelineCompileOptions,
-													 const unsigned char * ptxStr, size_t ptxSize) = 0;
-
-	public:
-
-		/**
-		 *	@brief		Create a context for the device.
-		 *	@param[in]	device - Pointer to the device associated with.
-		 *	@param[in]	logLevel - Logging level for OptiX messages:
-		 *						  - 0: Disable logging
-		 *						  - 1: Fatal errors only
-		 *						  - 2: Errors and warnings
-		 *						  - 3: Errors, warnings, and informational messages (default)
-		 *						  - 4: Verbose output
-		 *	@param[in]	validationMode - Enable or disable validation mode (requires Optix version >= 7.2.0).
-		 *	@return		Return shared pointer to the newly created context.
-		 *	@throw		OptixResult - Throw `OptixResult` in case of failure.
-		 */
-		static std::shared_ptr<DeviceContext> create(ns::Device * device, int logLevel = 3, bool validationMode = false);
+	#endif
 	};
 }

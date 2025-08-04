@@ -21,38 +21,38 @@
  */
 #pragma once
 
+#include "module.h"
 #include <optix.h>
-#include "device_context.h"
 
-namespace PHOTON_NAMESPACE
+namespace photon
 {
+	class DeviceContextImpl;
+
 	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
+	******************************    ModuleImpl    ******************************
 	*****************************************************************************/
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
+	class ModuleImpl : public Module
 	{
 
 	public:
 
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
+		ModuleImpl(std::shared_ptr<DeviceContextImpl> context, OptixModule hModule);
 
-		virtual ~DeviceContextImpl();
+		~ModuleImpl();
 
 	public:
 
-		OptixDeviceContext handle() { return m_hContext; }
+		//virtual std::unique_ptr<MissProg> creatMissProg(std::string funcName) override;
 
-		virtual ns::Device * device() const override { return m_device; }
+		//virtual std::unique_ptr<RaygenProg> createRaygenProg(std::string funcName) override;
 
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions, const OptixPipelineCompileOptions & pipelineCompileOptions, const unsigned char * ptxStr, size_t ptxSize) override;
+		//virtual std::unique_ptr<HitProg> createHitProg(std::string funcName0, std::string funcName1 = "", std::string funcname2 = "") override;
 
 	private:
 
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
+		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+
+		const OptixModule								m_hModule;
 	};
 }
