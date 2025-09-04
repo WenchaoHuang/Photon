@@ -23,16 +23,21 @@
 
 #include <nucleus/device.h>
 #include <nucleus/context.h>
+
+#include <photon/module.h>
 #include <photon/device_context.h>
+#include "rt_program.ptx.h"
 
 /*********************************************************************************
-*******************************    contest_test    *******************************
+*******************************    module_test    ********************************
 *********************************************************************************/
 
-void context_test()
+void module_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
-	auto devProp = context->properties();
-	assert(context->device() == device);
+	auto context = photon::DeviceContext::create(device);
+
+	OptixModuleCompileOptions moduleCompileOptions = {};
+	OptixPipelineCompileOptions pipelineCompileOptions = {};
+	auto module = context->createModule(moduleCompileOptions, pipelineCompileOptions, rt_program_ptx);
 }

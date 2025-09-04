@@ -1,4 +1,4 @@
-/**
+﻿/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,18 +21,38 @@
  */
 #pragma once
 
-#include <nucleus/device.h>
-#include <nucleus/context.h>
-#include <photon/device_context.h>
+#include "module.h"
+#include <optix.h>
 
-/*********************************************************************************
-*******************************    contest_test    *******************************
-*********************************************************************************/
-
-void context_test()
+namespace photon
 {
-	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
-	auto devProp = context->properties();
-	assert(context->device() == device);
+	class DeviceContextImpl;
+
+	/*****************************************************************************
+	******************************    ModuleImpl    ******************************
+	*****************************************************************************/
+
+	class ModuleImpl : public Module
+	{
+
+	public:
+
+		ModuleImpl(std::shared_ptr<DeviceContextImpl> context, OptixModule hModule);
+
+		~ModuleImpl();
+
+	public:
+
+		//virtual std::unique_ptr<MissProg> creatMissProg(std::string funcName) override;
+
+		//virtual std::unique_ptr<RaygenProg> createRaygenProg(std::string funcName) override;
+
+		//virtual std::unique_ptr<HitProg> createHitProg(std::string funcName0, std::string funcName1 = "", std::string funcname2 = "") override;
+
+	private:
+
+		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+
+		const OptixModule								m_hModule;
+	};
 }

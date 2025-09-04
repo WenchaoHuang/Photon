@@ -26,12 +26,13 @@
 ***********************************    main    ***********************************
 *********************************************************************************/
 
+extern void module_test();
 extern void context_test();
 
 int main()
 {
 	context_test();
-
+	module_test();
 	system("pause");
 
 	return 0;
