@@ -59,7 +59,7 @@ file(GLOB_RECURSE PHOTON_SOURCES
 add_library(${TARGET_NAME} STATIC ${PHOTON_SOURCES})
 
 # Link directories
-target_link_libraries(${TARGET_NAME} PRIVATE nucleus)
+target_link_libraries(${TARGET_NAME} PUBLIC nucleus)
 
 # Include directories
 target_include_directories(${TARGET_NAME} PUBLIC ${OPTIX_INCLUDE})
@@ -82,6 +82,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 )
 
 # Filters
+source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/module_impl.h)
 source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/device_context_impl.h)
 
 # Optional: Add tests if enabled

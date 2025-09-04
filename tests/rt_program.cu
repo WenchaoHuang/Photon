@@ -19,20 +19,26 @@
  *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *	SOFTWARE.
  */
-#pragma once
 
-#include <nucleus/device.h>
-#include <nucleus/context.h>
-#include <photon/device_context.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
-/*********************************************************************************
-*******************************    contest_test    *******************************
-*********************************************************************************/
 
-void context_test()
+extern "C"
 {
-	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
-	auto devProp = context->properties();
-	assert(context->device() == device);
+	__global__ void __raygen__()
+	{
+	}
+	__global__ void __closesthit__()
+	{
+	}
+	__global__ void __intersection__()
+	{
+	}
+	__global__ void __anyhit__()
+	{
+	}
+	__global__ void __miss__()
+	{
+	}
 }

@@ -23,6 +23,7 @@
 #include <nucleus/device.h>
 #include <nucleus/logger.h>
 #include "device_context_impl.h"
+#include "module_impl.h"
 
 #include <optix_stubs.h>
 #include <optix_function_table_definition.h>
@@ -107,6 +108,25 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 	NS_ERROR_LOG("Failed to create Optix context on device(%d): %s.", device->id(), optixGetErrorString(err));
 
 	throw err;
+}
+
+
+std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompileOptions & moduleCompileOptions,
+														const OptixPipelineCompileOptions & pipelineCompileOptions,
+														const unsigned char * ptxStr, size_t ptxSize)
+{
+	OptixModule hModule = nullptr;
+
+	OptixResult eResult = optixModuleCreate(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, (const char*)ptxStr, ptxSize, nullptr, nullptr, &hModule);
+
+	if (eResult == OPTIX_SUCCESS)
+	{
+		return std::make_unique<ModuleImpl>(this->shared_from_this(), hModule);
+	}
+
+	NS_ERROR_LOG("Failed to create Optix module: %s.", optixGetErrorString(eResult));
+
+	throw eResult;
 }
 
 /*********************************************************************************

@@ -21,18 +21,24 @@
  */
 #pragma once
 
-#include <nucleus/device.h>
-#include <nucleus/context.h>
-#include <photon/device_context.h>
+#include "fwd.h"
 
-/*********************************************************************************
-*******************************    contest_test    *******************************
-*********************************************************************************/
-
-void context_test()
+namespace photon
 {
-	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
-	auto devProp = context->properties();
-	assert(context->device() == device);
+	/*****************************************************************************
+	********************************    Module    ********************************
+	*****************************************************************************/
+
+	/**
+	 *	@brief		Abstract interface for an OptiX module.
+	 */
+	class Module
+	{
+
+	public:
+
+		virtual ~Module() {}
+
+
+	};
 }

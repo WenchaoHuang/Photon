@@ -31,15 +31,61 @@ file(GLOB TEST_CUDA_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cu"
 # Create the executable target
 add_executable(${TARGET_NAME} ${TEST_CPP_SOURCES} ${TEST_CUDA_SOURCES})
 
-# Link directories
-target_link_libraries(${TARGET_NAME} PRIVATE nucleus photon cudart_static)
+# Find and configure CUDA (required for cuda_compile_ptx and bin2c)
+find_package(CUDA REQUIRED)
 
-# MSVC settings
+# Directory where generated PTX headers will be stored
+set(GENERATED_HEADERS)
+
+# List to track generated header files (populated in the loop below)
+set(GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/ptx")
+
+# List of CUDA source files that should be compiled to PTX format
+set(PTX_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/rt_program.cu")
+
+# PTX Generation Pipeline
+foreach(PTX_SOURCE ${PTX_SOURCES})
+    # Extract the base name (without extension)
+    get_filename_component(base ${PTX_SOURCE} NAME_WE)
+
+    # Compile CUDA file into PTX
+    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE})
+
+    # Generated header file path
+    set(PTX_HEADER "${GENERATED_HEADERS_DIR}/${base}.ptx.h")
+
+	# Convert PTX into a C header using bin2c
+    add_custom_command(
+        OUTPUT ${PTX_HEADER}
+		COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/bin2c -p 0 -st -c -n ${base}_ptx ${${base}_ptx} > ${PTX_HEADER}
+        DEPENDS ${${base}_ptx}
+        COMMENT "Converting ${${base}_ptx} to ${PTX_HEADER} with bin2c"
+    )
+
+    # Collect generated headers
+    list(APPEND GENERATED_HEADERS ${PTX_HEADER})
+
+    # Add PTX source and generated *.ptx file to the target
+    target_sources(${TARGET_NAME} PRIVATE ${${base}_ptx})
+    target_sources(${TARGET_NAME} PRIVATE ${PTX_HEADER})
+
+    # Group PTX file and header in IDE project views
+    source_group("PTX Headers" FILES ${PTX_HEADER})
+    source_group("PTX Files" FILES ${${base}_ptx})
+endforeach()
+
+# Link directories
+target_link_libraries(${TARGET_NAME} PRIVATE photon)
+
+# Make the generated header directory available for #include
+target_include_directories(${TARGET_NAME} PRIVATE ${GENERATED_HEADERS_DIR})
+
+# MSVC-specific compiler flags
 if(MSVC)
     target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
 endif()
 
-# CMake properties
+# CUDA-Specific Properties
 set_target_properties(${TARGET_NAME} PROPERTIES
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
     CUDA_SEPARABLE_COMPILATION ON

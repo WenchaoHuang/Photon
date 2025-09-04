@@ -1,4 +1,4 @@
-/**
+﻿/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,20 +19,30 @@
  *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *	SOFTWARE.
  */
-#pragma once
 
-#include <nucleus/device.h>
-#include <nucleus/context.h>
-#include <photon/device_context.h>
+#include "module_impl.h"
+#include "device_context_impl.h"
+#include <nucleus/logger.h>
+#include <optix_stubs.h>
+
+PHOTON_USING_NAMESPACE
 
 /*********************************************************************************
-*******************************    contest_test    *******************************
+**********************************    Module    **********************************
 *********************************************************************************/
 
-void context_test()
+ModuleImpl::ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule) : m_deviceContext(deviceContext), m_hModule(hModule)
 {
-	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
-	auto devProp = context->properties();
-	assert(context->device() == device);
+
+}
+
+
+ModuleImpl::~ModuleImpl()
+{
+	if (m_hModule != nullptr)
+	{
+		OptixResult err = optixModuleDestroy(m_hModule);
+
+		NS_ERROR_LOG_IF(err != OPTIX_SUCCESS, "%s.", optixGetErrorString(err));
+	}
 }
