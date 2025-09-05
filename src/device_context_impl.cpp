@@ -20,10 +20,12 @@
  *	SOFTWARE.
  */
 
+#include "module_impl.h"
+#include "denoiser_impl.h"
+#include "device_context_impl.h"
+
 #include <nucleus/device.h>
 #include <nucleus/logger.h>
-#include "device_context_impl.h"
-#include "module_impl.h"
 
 #include <optix_stubs.h>
 #include <optix_function_table_definition.h>
@@ -127,6 +129,12 @@ std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompile
 	NS_ERROR_LOG("Failed to create Optix module: %s.", optixGetErrorString(eResult));
 
 	throw eResult;
+}
+
+
+std::unique_ptr<Denoiser> DeviceContextImpl::createDenoiser()
+{
+	return std::make_unique<DenoiserImpl>(this->shared_from_this());
 }
 
 /*********************************************************************************
