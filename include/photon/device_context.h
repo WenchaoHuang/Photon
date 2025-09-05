@@ -92,6 +92,9 @@ namespace PHOTON_NAMESPACE
 			return this->createModule(moduleCompileOptions, pipelineCompileOptions, ptx, ptxSize);
 		}
 
+		//! @brief  Create a denoiser.
+		virtual std::unique_ptr<Denoiser> createDenoiser() = 0;
+
 	public:
 
 		/**

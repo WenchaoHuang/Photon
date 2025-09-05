@@ -47,9 +47,12 @@ namespace PHOTON_NAMESPACE
 
 		virtual const DeviceProp & properties() const override { return m_devProp; }
 
-		std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions,
-											 const OptixPipelineCompileOptions & pipelineCompileOptions,
-											 const unsigned char * ptxStr, size_t ptxSize) override;
+
+		virtual std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions,
+													 const OptixPipelineCompileOptions & pipelineCompileOptions,
+													 const unsigned char * ptxStr, size_t ptxSize) override;
+
+		virtual std::unique_ptr<Denoiser> createDenoiser() override;
 
 	private:
 

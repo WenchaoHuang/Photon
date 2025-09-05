@@ -21,24 +21,30 @@
  */
 #pragma once
 
-#include "fwd.h"
+#include <nucleus/device.h>
+#include <nucleus/context.h>
+#include <nucleus/allocator.h>
+#include <photon/device_context.h>
+#include <photon/denoiser.h>
 
-namespace PHOTON_NAMESPACE
+/*********************************************************************************
+******************************    denoiser_test    *******************************
+*********************************************************************************/
+
+void denoiser_test()
 {
-	/*****************************************************************************
-	********************************    Module    ********************************
-	*****************************************************************************/
+	auto device = ns::Context::getInstance()->device(0);
+	auto deviceContext = photon::DeviceContext::create(device);
+	auto denoiser = deviceContext->createDenoiser();
+	auto allocator = device->defaultAllocator();
+	
+	denoiser->preallocate(allocator, photon::Denoiser::TemporalUpscale2x, 1024, 1024);
+	denoiser->preallocate(allocator, photon::Denoiser::Temporal, 1024, 1024);
+	denoiser->preallocate(allocator, photon::Denoiser::Upscale2x, 1024, 1024);
+	denoiser->preallocate(allocator, photon::Denoiser::Normal, 1024, 1024);
 
-	/**
-	 *	@brief		Abstract interface for an OptiX module.
-	 */
-	class Module
-	{
-
-	public:
-
-		virtual ~Module() {}
+	assert(denoiser->maxInputWidth() == 1024);
+	assert(denoiser->maxInputHeight() == 1024);
 
 
-	};
 }
