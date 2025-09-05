@@ -49,6 +49,8 @@ namespace PHOTON_NAMESPACE
 	class AccelStructCurve;
 	class AccelStructSphere;
 	class AccelStructTriangle;
+
+	struct Color4f { float r, g, b, a; };
 }
 
 /*********************************************************************************
