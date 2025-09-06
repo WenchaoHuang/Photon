@@ -20,7 +20,6 @@
  *	SOFTWARE.
  */
 
-#include "module_impl.h"
 #include "denoiser_impl.h"
 #include "device_context_impl.h"
 
@@ -113,7 +112,7 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 }
 
 
-std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompileOptions & moduleCompileOptions,
+std::shared_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompileOptions & moduleCompileOptions,
 														const OptixPipelineCompileOptions & pipelineCompileOptions,
 														const unsigned char * ptxStr, size_t ptxSize)
 {
@@ -123,7 +122,7 @@ std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompile
 
 	if (eResult == OPTIX_SUCCESS)
 	{
-		return std::make_unique<ModuleImpl>(this->shared_from_this(), hModule);
+		return std::make_shared<ModuleImpl>(this->shared_from_this(), hModule);
 	}
 
 	NS_ERROR_LOG("Failed to create Optix module: %s.", optixGetErrorString(eResult));
@@ -155,5 +154,25 @@ DeviceContextImpl::~DeviceContextImpl()
 		OptixResult err = optixDeviceContextDestroy(m_hContext);
 
 		NS_ERROR_LOG_IF(err != OPTIX_SUCCESS, "%s.", optixGetErrorString(err));
+	}
+}
+
+/*********************************************************************************
+********************************    ModuleImpl    ********************************
+*********************************************************************************/
+
+ModuleImpl::ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule) : m_deviceContext(deviceContext), m_hModule(hModule)
+{
+
+}
+
+
+ModuleImpl::~ModuleImpl()
+{
+	if (m_deviceContext != nullptr)
+	{
+		OptixResult err = optixModuleDestroy(m_hModule);
+
+		NS_ERROR_LOG_IF(err != OPTIX_SUCCESS, "Failed to destroy Optix module: %s.", optixGetErrorString(err));
 	}
 }

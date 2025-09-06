@@ -24,6 +24,7 @@
 #include <nucleus/device.h>
 #include <nucleus/context.h>
 #include <photon/device_context.h>
+#include "rt_program.ptx.h"
 
 /*********************************************************************************
 *******************************    contest_test    *******************************
@@ -35,4 +36,8 @@ void context_test()
 	auto context = photon::DeviceContext::create(device, 4, true);
 	auto devProp = context->properties();
 	assert(context->device() == device);
+
+	OptixModuleCompileOptions moduleCompileOptions = {};
+	OptixPipelineCompileOptions pipelineCompileOptions = {};
+	auto module = context->createModule(moduleCompileOptions, pipelineCompileOptions, rt_program_ptx);
 }

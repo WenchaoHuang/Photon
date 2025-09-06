@@ -26,13 +26,11 @@
 ***********************************    main    ***********************************
 *********************************************************************************/
 
-extern void module_test();
 extern void context_test();
 extern void denoiser_test();
 
 int main()
 {
-	module_test();
 	context_test();
 	denoiser_test();
 	system("pause");

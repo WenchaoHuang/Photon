@@ -30,17 +30,8 @@
 
 namespace PHOTON_NAMESPACE
 {
-	class Module;
 	class Denoiser;
-	class ProgramGroup;
 	class DeviceContext;
-
-	class Program;
-	class HitProg;
-	class MissProg;
-	class RaygenProg;
-	class DirectCallableProg;
-	class ContinueCallableProg;
 
 	class AccelStruct;
 	class InstAccelStruct;
@@ -49,6 +40,14 @@ namespace PHOTON_NAMESPACE
 	class AccelStructCurve;
 	class AccelStructSphere;
 	class AccelStructTriangle;
+
+	//	Transparent objects
+	struct Module { virtual ~Module() {} };
+	struct MissProgram { virtual ~MissProgram() {} };
+	struct RaygenProgram { virtual ~RaygenProgram() {} };
+	struct HitProgramGroup { virtual ~HitProgramGroup() {} };
+	struct ExceptionProgram { virtual ~ExceptionProgram() {} };
+	struct CallableProgramGroup { virtual ~CallableProgramGroup() {} };
 
 	struct Color4f { float r, g, b, a; };
 }

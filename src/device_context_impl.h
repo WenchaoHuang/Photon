@@ -48,7 +48,7 @@ namespace PHOTON_NAMESPACE
 		virtual const DeviceProp & properties() const override { return m_devProp; }
 
 
-		virtual std::unique_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions,
+		virtual std::shared_ptr<Module> createModule(const OptixModuleCompileOptions & moduleCompileOptions,
 													 const OptixPipelineCompileOptions & pipelineCompileOptions,
 													 const unsigned char * ptxStr, size_t ptxSize) override;
 
@@ -59,5 +59,26 @@ namespace PHOTON_NAMESPACE
 		ns::Device * const				m_device;
 		const OptixDeviceContext		m_hContext;
 		const DeviceProp				m_devProp;
+	};
+
+
+	/*****************************************************************************
+	******************************    ModuleImpl    ******************************
+	*****************************************************************************/
+
+	class ModuleImpl : public Module
+	{
+
+	public:
+
+		ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule);
+
+		~ModuleImpl();
+
+	private:
+
+		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+
+		const OptixModule								m_hModule;
 	};
 }
