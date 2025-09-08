@@ -23,22 +23,45 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-
 extern "C"
 {
 	__global__ void __raygen__()
 	{
+
 	}
-	__global__ void __closesthit__()
-	{
-	}
-	__global__ void __intersection__()
-	{
-	}
+
 	__global__ void __anyhit__()
 	{
+
 	}
+
+	__global__ void __closesthit__()
+	{
+
+	}
+
+	__global__ void __intersection__()
+	{
+
+	}
+
+	__global__ void __direct_callable__()
+	{
+
+	}
+
+	__global__ void __continuation_callable__()
+	{
+
+	}
+
+	__global__ void __exception__()
+	{
+
+	}
+
 	__global__ void __miss__()
 	{
+
 	}
 }
