@@ -113,9 +113,9 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 }
 
 
-std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompileOptions & moduleCompileOptions,
-														const OptixPipelineCompileOptions & pipelineCompileOptions,
-														const unsigned char * ptxStr, size_t ptxSize)
+std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * ptxStr, size_t ptxSize,
+														const OptixModuleCompileOptions & moduleCompileOptions,
+														const OptixPipelineCompileOptions & pipelineCompileOptions)
 {
 	OptixModule hModule = nullptr;
 
@@ -123,7 +123,7 @@ std::unique_ptr<Module> DeviceContextImpl::createModule(const OptixModuleCompile
 
 	if (eResult == OPTIX_SUCCESS)
 	{
-		return std::make_unique<ModuleImpl>(this->shared_from_this(), hModule);
+		return std::make_shared<ModuleImpl>(this->shared_from_this(), hModule);
 	}
 
 	NS_ERROR_LOG("Failed to create Optix module: %s.", optixGetErrorString(eResult));

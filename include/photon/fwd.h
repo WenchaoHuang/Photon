@@ -31,16 +31,9 @@
 namespace PHOTON_NAMESPACE
 {
 	class Module;
-	class Denoiser;
-	class ProgramGroup;
-	class DeviceContext;
-
 	class Program;
-	class HitProg;
-	class MissProg;
-	class RaygenProg;
-	class DirectCallableProg;
-	class ContinueCallableProg;
+	class Denoiser;
+	class DeviceContext;
 
 	class AccelStruct;
 	class InstAccelStruct;

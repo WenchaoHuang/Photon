@@ -21,42 +21,43 @@
  */
 #pragma once
 
-#include <optix.h>
-#include "device_context.h"
+#include "macros.h"
+#include <optix_types.h>
+
+#pragma warning(disable: 4324)		//!	structure was padded due to alignment specifier.
 
 namespace PHOTON_NAMESPACE
 {
 	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
+	*****************************    SbtRecord<T>    *****************************
 	*****************************************************************************/
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
+	/**
+	 *	@brief		Struct representing the header of a Shader Binding Table (SBT) record.
+	 */
+	struct SbtHeader { unsigned char storage[OPTIX_SBT_RECORD_HEADER_SIZE]; };
+
+
+	/**
+	 *	@brief		Template struct for creating Shader Binding Table (SBT) records with specified alignment and data type.
+	 *	@tparam		SbtData - The type of data contained in the SBT record.
+	 */
+	template<typename SbtData> struct NS_ALIGN(OPTIX_SBT_RECORD_ALIGNMENT) SbtRecord
 	{
-
-	public:
-
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
-
-		virtual ~DeviceContextImpl();
-
-	public:
-
-		OptixDeviceContext handle() { return m_hContext; }
-
-		virtual ns::Device * device() const override { return m_device; }
-
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		virtual std::shared_ptr<Module> createModule(const unsigned char * ptxStr, size_t ptxSize,
-													 const OptixModuleCompileOptions & moduleCompileOptions,
-													 const OptixPipelineCompileOptions & pipelineCompileOptions) override;
-
-		virtual std::unique_ptr<Denoiser> createDenoiser() override;
-
-	private:
-
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
+		SbtHeader	header;		//	The header of the SBT record.
+		SbtData		data;		//	The data contained in the SBT record.
 	};
+
+
+	/**
+	 *	@brief		Specialization of SbtRecord struct for the case when SbtData is void.
+	 */
+	template<> struct NS_ALIGN(OPTIX_SBT_RECORD_ALIGNMENT) SbtRecord<void>
+	{
+		SbtHeader	header;		//	The header of the SBT record.
+	};
+
+
+	//	Type alias
+	using EmptyRecord = SbtRecord<void>;
 }
