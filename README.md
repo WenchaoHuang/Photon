@@ -36,7 +36,6 @@ cmake ..
 ```
 
 ## Usage Example
-Below is a simple example showing how to initialize Photon and create core context objects:
 
 ```cpp
 // Nucleus headers
@@ -51,11 +50,21 @@ Below is a simple example showing how to initialize Photon and create core conte
 
 // Contexts
 auto device = ns::Context::getInstance()->device(0);
-auto devCtx = pt::DeviceContext::create(device);
-auto alloc = device->defaultAllocator();
+auto context = pt::DeviceContext::create(device);
+auto allocator = device->defaultAllocator();
 auto stream = ns::Stream(device);
 
-// TODO: pipeline, programs, accel_struct usage...
+// Setup pipeline
+auto myModule = context->createModule(rt_program_ptx_bin);
+auto intersectProg = myModule->at("__intersection__www");
+auto closesthitProg = myModule->at("__closesthit__xxx");
+auto raygenProg = myModule->at("__raygen__yyy");
+auto missProg = myModule->at("__miss__zzz");
+auto hitGroup = pt::Program::combine(intersectProg, closesthitProg);
+auto pipeline = context->createPipeline({ raygenProg, hitGroup, missProg });
+
+// Build accel-struct
+// TODO: ...
 ```
 More usage examples and documentation are coming soon.
 
