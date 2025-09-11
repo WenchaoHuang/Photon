@@ -25,7 +25,7 @@
 #include <optix.h>
 #include <map>
 
-namespace photon
+namespace PHOTON_NAMESPACE
 {
 	class ModuleImpl;
 	class DeviceContextImpl;

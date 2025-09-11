@@ -28,7 +28,7 @@
 *********************************************************************************/
 
 #ifndef PHOTON_NAMESPACE
-	#define PHOTON_NAMESPACE				photon
+	#define PHOTON_NAMESPACE				pt
 #endif
 
 #define PHOTON_USING_NAMESPACE				using namespace PHOTON_NAMESPACE;

@@ -32,7 +32,7 @@
 void context_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device, 4, true);
+	auto context = pt::DeviceContext::create(device, 4, true);
 	auto devProp = context->properties();
 	assert(context->device() == device);
 }
