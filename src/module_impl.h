@@ -53,6 +53,8 @@ namespace photon
 
 		std::shared_ptr<DeviceContextImpl> deviceContext() const;
 
+		OptixProgramGroup handle() { return m_hProgramGroup; }
+
 	private:
 
 		const std::shared_ptr<ModuleImpl>		m_module;

@@ -32,6 +32,7 @@ namespace PHOTON_NAMESPACE
 {
 	class Module;
 	class Program;
+	class Pipeline;
 	class Denoiser;
 	class DeviceContext;
 

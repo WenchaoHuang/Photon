@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,46 +21,25 @@
  */
 #pragma once
 
-#include <optix.h>
-#include "device_context.h"
+#include "fwd.h"
 
 namespace PHOTON_NAMESPACE
 {
 	/*****************************************************************************
-	**************************    DeviceContextImpl    ***************************
+	*******************************    Pipeline    *******************************
 	*****************************************************************************/
 
-	class DeviceContextImpl : public DeviceContext, public std::enable_shared_from_this<DeviceContextImpl>
+	/**
+	 *	@brief		Abstract interface for an OptiX pipline.
+	 */
+	class Pipeline
 	{
 
 	public:
 
-		explicit DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp);
+		//!	Virtual destructor.
+		virtual ~Pipeline() {}
 
-		virtual ~DeviceContextImpl();
 
-	public:
-
-		OptixDeviceContext handle() { return m_hContext; }
-
-		virtual ns::Device * device() const override { return m_device; }
-
-		virtual const DeviceProp & properties() const override { return m_devProp; }
-
-		virtual std::shared_ptr<Module> createModule(const unsigned char * ptxStr, size_t ptxSize,
-													 const OptixModuleCompileOptions & moduleCompileOptions,
-													 const OptixPipelineCompileOptions & pipelineCompileOptions) override;
-
-		virtual std::unique_ptr<Pipeline> createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
-														 const OptixPipelineCompileOptions & pipelineCompileOptions,
-														 const OptixPipelineLinkOptions & pipelineLinkOptions) override;
-
-		virtual std::unique_ptr<Denoiser> createDenoiser() override;
-
-	private:
-
-		ns::Device * const				m_device;
-		const OptixDeviceContext		m_hContext;
-		const DeviceProp				m_devProp;
 	};
 }

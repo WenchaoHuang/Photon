@@ -22,6 +22,7 @@
 #pragma once
 
 #include "fwd.h"
+#include <nucleus/array_proxy.h>
 #include <optix.h>
 
 namespace PHOTON_NAMESPACE
@@ -92,7 +93,12 @@ namespace PHOTON_NAMESPACE
 			return this->createModule(ptx, ptxSize, moduleCompileOptions, pipelineCompileOptions);
 		}
 
-		//! @brief  Create a denoiser.
+		//!	@brief		Create a pipeline.
+		virtual std::unique_ptr<Pipeline> createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
+														 const OptixPipelineCompileOptions & pipelineCompileOptions = OptixPipelineCompileOptions{},
+														 const OptixPipelineLinkOptions & pipelineLinkOptions = OptixPipelineLinkOptions{}) = 0;
+
+		//! @brief		Create a denoiser.
 		virtual std::unique_ptr<Denoiser> createDenoiser() = 0;
 
 	public:

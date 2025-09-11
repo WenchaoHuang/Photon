@@ -21,6 +21,7 @@
  */
 
 #include "module_impl.h"
+#include "pipeline_impl.h"
 #include "denoiser_impl.h"
 #include "device_context_impl.h"
 
@@ -112,31 +113,6 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 	throw err;
 }
 
-
-std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * ptxStr, size_t ptxSize,
-														const OptixModuleCompileOptions & moduleCompileOptions,
-														const OptixPipelineCompileOptions & pipelineCompileOptions)
-{
-	OptixModule hModule = nullptr;
-
-	OptixResult eResult = optixModuleCreate(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, (const char*)ptxStr, ptxSize, nullptr, nullptr, &hModule);
-
-	if (eResult == OPTIX_SUCCESS)
-	{
-		return std::make_shared<ModuleImpl>(this->shared_from_this(), hModule);
-	}
-
-	NS_ERROR_LOG("Failed to create Optix module: %s.", optixGetErrorString(eResult));
-
-	throw eResult;
-}
-
-
-std::unique_ptr<Denoiser> DeviceContextImpl::createDenoiser()
-{
-	return std::make_unique<DenoiserImpl>(this->shared_from_this());
-}
-
 /*********************************************************************************
 ****************************    DeviceContextImpl    *****************************
 *********************************************************************************/
@@ -145,6 +121,68 @@ DeviceContextImpl::DeviceContextImpl(ns::Device * device, OptixDeviceContext hCo
 	: m_device(device), m_hContext(hContext), m_devProp(devProp)
 {
 
+}
+
+
+std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * ptxStr, size_t ptxSize,
+														const OptixModuleCompileOptions & moduleCompileOptions,
+														const OptixPipelineCompileOptions & pipelineCompileOptions)
+{
+	OptixModule hModule = nullptr;
+
+	OptixResult err = optixModuleCreate(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, (const char*)ptxStr, ptxSize, nullptr, nullptr, &hModule);
+
+	if (err == OPTIX_SUCCESS)
+	{
+		return std::make_shared<ModuleImpl>(this->shared_from_this(), hModule);
+	}
+
+	NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+	throw err;
+}
+
+
+std::unique_ptr<Pipeline> DeviceContextImpl::createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
+															const OptixPipelineCompileOptions & pipelineCompileOptions,
+															const OptixPipelineLinkOptions & pipelineLinkOptions)
+{
+	OptixPipeline hPipeline = nullptr;
+
+	std::vector<OptixProgramGroup>		programGroups(programs.size());
+
+	for (size_t i = 0; i < programGroups.size(); i++)
+	{
+		auto progImpl = std::dynamic_pointer_cast<ProgramImpl>(programs[i]);
+
+		if (progImpl == nullptr)
+		{
+			NS_ERROR_LOG("Invalid program!");
+
+			return nullptr;
+		}
+		else
+		{
+			programGroups[i] = progImpl->handle();
+		}
+	}
+
+	OptixResult err = optixPipelineCreate(m_hContext, &pipelineCompileOptions, &pipelineLinkOptions, programGroups.data(), programs.size(), nullptr, nullptr, &hPipeline);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		throw err;
+	}
+
+	return std::make_unique<PipelineImpl>(this->shared_from_this(), hPipeline);
+}
+
+
+std::unique_ptr<Denoiser> DeviceContextImpl::createDenoiser()
+{
+	return std::make_unique<DenoiserImpl>(this->shared_from_this());
 }
 
 
