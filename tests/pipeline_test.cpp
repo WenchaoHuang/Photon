@@ -30,13 +30,17 @@
 #include "rt_program.ptx.h"
 
 /*********************************************************************************
-*******************************    module_test    ********************************
+******************************    pipeline_test    *******************************
 *********************************************************************************/
 
-void module_test()
+void pipeline_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto context = pt::DeviceContext::create(device);
+	auto context = pt::DeviceContext::create(device, 4, true);
+
+	assert(context->device() == device);
+
+	auto devProp = context->properties();
 	auto module = context->createModule(rt_program_ptx);
 
 	auto program0 = module->at("");								//	error: empty function name
