@@ -25,6 +25,7 @@
 #include <nucleus/context.h>
 
 #include <photon/module.h>
+#include <photon/pipeline.h>
 #include <photon/device_context.h>
 #include "rt_program.ptx.h"
 
@@ -75,4 +76,6 @@ void module_test()
 	assert(program9->type() == photon::Program::ClosestHit);
 	assert(program10->type() == photon::Program::AnyHit);
 	assert(program11->type() == photon::Program::Miss);
+
+	auto pipeline = context->createPipeline({ program2, program9, program11 });
 }
