@@ -34,14 +34,14 @@
 void denoiser_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto deviceContext = photon::DeviceContext::create(device);
+	auto deviceContext = pt::DeviceContext::create(device);
 	auto denoiser = deviceContext->createDenoiser();
 	auto allocator = device->defaultAllocator();
 	
-	denoiser->preallocate(allocator, photon::Denoiser::TemporalUpscale2x, 1024, 1024);
-	denoiser->preallocate(allocator, photon::Denoiser::Temporal, 1024, 1024);
-	denoiser->preallocate(allocator, photon::Denoiser::Upscale2x, 1024, 1024);
-	denoiser->preallocate(allocator, photon::Denoiser::Normal, 1024, 1024);
+	denoiser->preallocate(allocator, pt::Denoiser::TemporalUpscale2x, 1024, 1024);
+	denoiser->preallocate(allocator, pt::Denoiser::Temporal, 1024, 1024);
+	denoiser->preallocate(allocator, pt::Denoiser::Upscale2x, 1024, 1024);
+	denoiser->preallocate(allocator, pt::Denoiser::Normal, 1024, 1024);
 
 	assert(denoiser->maxInputWidth() == 1024);
 	assert(denoiser->maxInputHeight() == 1024);

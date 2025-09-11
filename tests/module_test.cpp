@@ -36,7 +36,7 @@
 void module_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto context = photon::DeviceContext::create(device);
+	auto context = pt::DeviceContext::create(device);
 	auto module = context->createModule(rt_program_ptx);
 
 	auto program0 = module->at("");								//	error: empty function name
@@ -51,8 +51,8 @@ void module_test()
 	auto program9 = module->at("__closesthit__");
 	auto program10 = module->at("__anyhit__");
 	auto program11 = module->at("__miss__");
-	auto program12 = photon::Program::combine(program6, program7);
-	auto program13 = photon::Program::combine(program8, program9, program10);
+	auto program12 = pt::Program::combine(program6, program7);
+	auto program13 = pt::Program::combine(program8, program9, program10);
 
 	assert(program0 == nullptr);
 	assert(program1 == nullptr);
@@ -67,15 +67,15 @@ void module_test()
 	assert(program10 != nullptr);
 	assert(program11 != nullptr);
 
-	assert(program2->type() == photon::Program::Raygen);
-	assert(program3->type() == photon::Program::Raygen);
-	assert(program5->type() == photon::Program::Exception);
-	assert(program6->type() == photon::Program::DirectCallable);
-	assert(program7->type() == photon::Program::ContinuationCallable);
-	assert(program8->type() == photon::Program::Intersection);
-	assert(program9->type() == photon::Program::ClosestHit);
-	assert(program10->type() == photon::Program::AnyHit);
-	assert(program11->type() == photon::Program::Miss);
+	assert(program2->type() == pt::Program::Raygen);
+	assert(program3->type() == pt::Program::Raygen);
+	assert(program5->type() == pt::Program::Exception);
+	assert(program6->type() == pt::Program::DirectCallable);
+	assert(program7->type() == pt::Program::ContinuationCallable);
+	assert(program8->type() == pt::Program::Intersection);
+	assert(program9->type() == pt::Program::ClosestHit);
+	assert(program10->type() == pt::Program::AnyHit);
+	assert(program11->type() == pt::Program::Miss);
 
 	auto pipeline = context->createPipeline({ program2, program9, program11 });
 }
