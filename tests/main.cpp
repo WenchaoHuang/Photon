@@ -26,14 +26,12 @@
 ***********************************    main    ***********************************
 *********************************************************************************/
 
-extern void module_test();
-extern void context_test();
+extern void pipeline_test();
 extern void denoiser_test();
 
 int main()
 {
-	module_test();
-	context_test();
+	pipeline_test();
 	denoiser_test();
 	system("pause");
 
