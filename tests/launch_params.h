@@ -21,35 +21,8 @@
  */
 #pragma once
 
-#include "pipeline.h"
-#include <optix.h>
 
-namespace PHOTON_NAMESPACE
+struct LaunchParams
 {
-	class DeviceContextImpl;
-
-	/*****************************************************************************
-	*****************************    PipelineImpl    *****************************
-	*****************************************************************************/
-
-	class PipelineImpl : public Pipeline
-	{
-
-	public:
-
-		PipelineImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixPipeline hPipeline);
-
-		~PipelineImpl();
-
-	public:
-
-		virtual void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize,
-							  const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth) override;
-
-	private:
-
-		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
-
-		const OptixPipeline								m_hPipeline;
-	};
-}
+	int seed;
+};
