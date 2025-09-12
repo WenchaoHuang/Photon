@@ -21,13 +21,16 @@
  */
 #pragma once
 
+#include <nucleus/stream.h>
 #include <nucleus/device.h>
 #include <nucleus/context.h>
+#include <nucleus/array_1d.h>
 
 #include <photon/module.h>
 #include <photon/pipeline.h>
 #include <photon/device_context.h>
 #include "rt_program.ptx.h"
+#include "launch_params.h"
 
 /*********************************************************************************
 ******************************    pipeline_test    *******************************
@@ -37,6 +40,8 @@ void pipeline_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
 	auto context = pt::DeviceContext::create(device, 4, true);
+	auto allocator = device->defaultAllocator();
+	auto & stream = device->defaultStream();
 
 	assert(context->device() == device);
 
@@ -82,4 +87,20 @@ void pipeline_test()
 	assert(program11->type() == pt::Program::Miss);
 
 	auto pipeline = context->createPipeline({ program2, program9, program11 });
+	assert(pipeline != nullptr);
+
+	ns::Array<LaunchParams>			launchParams(allocator, 1);
+	ns::Array<pt::EmptyRecord>		raygenRecord(allocator, 1);
+	ns::Array<pt::EmptyRecord>		missRecord(allocator, 1);
+
+	OptixShaderBindingTable sbt = {};
+	sbt.raygenRecord = CUdeviceptr(raygenRecord.data());
+	sbt.missRecordBase = CUdeviceptr(missRecord.data());
+	sbt.missRecordStrideInBytes = sizeof(pt::EmptyRecord);
+	sbt.missRecordCount = 1;
+
+	stream.memcpy<void>(missRecord.data(), program11->header().storage, sizeof(pt::SbtHeader));
+	stream.memcpy<void>(raygenRecord.data(), program2->header().storage, sizeof(pt::SbtHeader));
+	pipeline->launch<LaunchParams>(stream, launchParams, sbt, 10, 1);
+	stream.sync();
 }

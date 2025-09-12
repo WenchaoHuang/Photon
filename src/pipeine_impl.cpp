@@ -22,6 +22,8 @@
 
 #include "pipeline_impl.h"
 #include "device_context_impl.h"
+#include <nucleus/logger.h>
+#include <nucleus/stream.h>
 #include <optix_stubs.h>
 
 PHOTON_USING_NAMESPACE
@@ -37,7 +39,26 @@ PipelineImpl::PipelineImpl(std::shared_ptr<DeviceContextImpl> deviceContext, Opt
 }
 
 
+void PipelineImpl::doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize,
+							const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth)
+{
+	OptixResult err = optixLaunch(m_hPipeline, stream.handle(), CUdeviceptr(pipelineParams), pipelineParamsSize, &sbt, width, height, depth);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		throw err;
+	}
+}
+
+
 PipelineImpl::~PipelineImpl()
 {
+	if (m_hPipeline != nullptr)
+	{
+		OptixResult err = optixPipelineDestroy(m_hPipeline);
 
+		NS_ERROR_LOG_IF(err != OPTIX_SUCCESS, "%s.", optixGetErrorString(err));
+	}
 }
