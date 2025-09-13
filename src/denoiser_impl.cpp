@@ -44,27 +44,31 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	NS_ASSERT((albedo.width() == input.width()) && (albedo.height() == input.height()));
 	NS_ASSERT((normal.width() == input.width()) && (normal.height() == input.height()));
 
-	OptixDenoiserLayer									denoiserLayer = {};
-	OptixDenoiserParams									denoiserParams = {};
-	OptixDenoiserGuideLayer								denoiserGuideLayer = {};
+	OptixImage2D										inputImage = {};
+	inputImage.format									= OPTIX_PIXEL_FORMAT_FLOAT4;
+	inputImage.data										= (CUdeviceptr)input.data();
+	inputImage.width									= input.width();
+	inputImage.height									= input.height();
+	inputImage.rowStrideInBytes							= input.pitch();
+	inputImage.pixelStrideInBytes						= sizeof(Color4f);
 
+	OptixImage2D										outputImage = {};
+	outputImage.format									= OPTIX_PIXEL_FORMAT_FLOAT4;
+	outputImage.data									= (CUdeviceptr)output.data();
+	outputImage.width									= output.width();
+	outputImage.height									= output.height();
+	outputImage.rowStrideInBytes						= output.pitch();
+	outputImage.pixelStrideInBytes						= sizeof(Color4f);
+
+#if OPTIX_VERSION >= 70300
+	OptixDenoiserLayer									denoiserLayer = {};
 #if OPTIX_VERSION >= 70700
 	denoiserLayer.type									= OPTIX_DENOISER_AOV_TYPE_NONE;
 #endif
-	denoiserLayer.input.format							= OPTIX_PIXEL_FORMAT_FLOAT4;
-	denoiserLayer.input.data							= (CUdeviceptr)input.data();
-	denoiserLayer.input.width							= input.width();
-	denoiserLayer.input.height							= input.height();
-	denoiserLayer.input.rowStrideInBytes				= input.pitch();
-	denoiserLayer.input.pixelStrideInBytes				= sizeof(Color4f);
+	denoiserLayer.input									= inputImage;
+	denoiserLayer.output								= outputImage;
 
-	denoiserLayer.output.format							= OPTIX_PIXEL_FORMAT_FLOAT4;
-	denoiserLayer.output.data							= (CUdeviceptr)output.data();
-	denoiserLayer.output.width							= output.width();
-	denoiserLayer.output.height							= output.height();
-	denoiserLayer.output.rowStrideInBytes				= output.pitch();
-	denoiserLayer.output.pixelStrideInBytes				= sizeof(Color4f);
-
+	OptixDenoiserGuideLayer								denoiserGuideLayer = {};
 	denoiserGuideLayer.albedo.format					= OPTIX_PIXEL_FORMAT_FLOAT3;
 	denoiserGuideLayer.albedo.data						= (CUdeviceptr)albedo.data();
 	denoiserGuideLayer.albedo.width						= albedo.width();
@@ -78,7 +82,9 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	denoiserGuideLayer.normal.height					= normal.height();
 	denoiserGuideLayer.normal.rowStrideInBytes			= normal.pitch();
 	denoiserGuideLayer.normal.pixelStrideInBytes		= sizeof(Color4f);
+#endif
 
+	OptixDenoiserParams									denoiserParams = {};
 	denoiserParams.blendFactor							= blendFactor;
 	denoiserParams.hdrAverageColor						= (CUdeviceptr)m_avgColorCache.data();
 	denoiserParams.hdrIntensity							= (CUdeviceptr)m_intensityCache.data();
@@ -144,20 +150,25 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	#endif
 	}
 #endif
-	this->internalSetup(stream, denoiserLayer.input.width, denoiserLayer.input.height);
+	this->internalSetup(stream, input.width(), input.height());
 
-	OptixResult eResult = optixDenoiserComputeIntensity(m_hDenoiser, stream.handle(), &denoiserLayer.input,
+	OptixResult eResult = optixDenoiserComputeIntensity(m_hDenoiser, stream.handle(), &inputImage,
 														(CUdeviceptr)m_intensityCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
 
 	if (eResult == OPTIX_SUCCESS)
 	{
-		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &denoiserLayer.input,
+		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &inputImage,
 												   (CUdeviceptr)m_avgColorCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
 
 		if (eResult == OPTIX_SUCCESS)
 		{
+		#if OPTIX_VERSION >= 70300
 			eResult = optixDenoiserInvoke(m_hDenoiser, stream.handle(), &denoiserParams, (CUdeviceptr)m_stateCache.data(), m_stateCache.bytes(),
 										  &denoiserGuideLayer, &denoiserLayer, 1, 0, 0, (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+		#else
+			eResult = optixDenoiserInvoke(m_hDenoiser, stream.handle(), &denoiserParams, (CUdeviceptr)m_stateCache.data(), m_stateCache.bytes(),
+										  &inputImage, 1, 0, 0, &outputImage,(CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+		#endif
 		}
 	}
 
@@ -189,13 +200,21 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 
 		OptixDenoiser						hDenoiser = nullptr;
 		OptixDenoiserOptions				denoiserOptions = {};
+	#if OPTIX_VERSION >= 70300
+		denoiserOptions.guideAlbedo			= 1;
+		denoiserOptions.guideNormal			= 1;
+	#else
+		denoiserOptions.inputKind			= OPTIX_DENOISER_INPUT_RGB_ALBEDO_NORMAL;
+	#endif
 	#if OPTIX_VERSION >= 80000
 		denoiserOptions.denoiseAlpha		= OPTIX_DENOISER_ALPHA_MODE_COPY;
 	#endif
-		denoiserOptions.guideAlbedo			= 1;
-		denoiserOptions.guideNormal			= 1;
 
+	#if OPTIX_VERSION >= 70300
 		OptixResult eResult = optixDenoiserCreate(m_deviceContext->handle(), denoiserModelKind, &denoiserOptions, &hDenoiser);
+	#else
+		OptixResult eResult = optixDenoiserCreate(m_deviceContext->handle(), &denoiserOptions, &hDenoiser);
+	#endif
 
 		if (eResult == OPTIX_SUCCESS)
 		{
