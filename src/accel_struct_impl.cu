@@ -37,15 +37,17 @@ static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::RequireSingleAnyhitCa
 static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::DisableTriangleFaceCulling)			== OPTIX_GEOMETRY_FLAG_DISABLE_TRIANGLE_FACE_CULLING);
 #endif
 
+#if OPTIX_VERSION >= 70100
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundLinear)						== OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCubicBSpline)					== OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundQuadraticBSpline)				== OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
-#if OPTIX_VERSION >= 70700
-static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCubicBezier)					== OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BEZIER);
-static_assert(static_cast<int>(AccelStructCurve::CurveType::FlatQuadraticBSpline)				== OPTIX_PRIMITIVE_TYPE_FLAT_QUADRATIC_BSPLINE);
 #endif
 #if OPTIX_VERSION >= 70400
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCatmullRom)					== OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM);
+#endif
+#if OPTIX_VERSION >= 70700
+static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCubicBezier)					== OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BEZIER);
+static_assert(static_cast<int>(AccelStructCurve::CurveType::FlatQuadraticBSpline)				== OPTIX_PRIMITIVE_TYPE_FLAT_QUADRATIC_BSPLINE);
 #endif
 
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::None)								== OPTIX_INSTANCE_FLAG_NONE);
@@ -237,17 +239,21 @@ void AccelStructTriangleImpl::build(ns::Stream & stream, NsAllocPtr allocator, n
 		optixBuildInputs[i].triangleArray.vertexStrideInBytes				= sizeof(ns::float3_16a);
 		optixBuildInputs[i].triangleArray.vertexBuffers						= &m_vertBuffers[i];
 		optixBuildInputs[i].triangleArray.numVertices						= buildInputs[i].numVertices;
-		optixBuildInputs[i].triangleArray.indexFormat						= useInexBuffer ? OPTIX_INDICES_FORMAT_UNSIGNED_INT3 : OPTIX_INDICES_FORMAT_NONE;
 		optixBuildInputs[i].triangleArray.indexBuffer						= useInexBuffer ? (CUdeviceptr)buildInputs[i].indexBuffer.data() : NULL;
 		optixBuildInputs[i].triangleArray.numIndexTriplets					= useInexBuffer ? buildInputs[i].numIndexTriplets : 0;
 		optixBuildInputs[i].triangleArray.indexStrideInBytes				= useInexBuffer ? sizeof(ns::int3_16a) : 0;
-		optixBuildInputs[i].triangleArray.transformFormat					= OPTIX_TRANSFORM_FORMAT_NONE;
 		optixBuildInputs[i].triangleArray.preTransform						= NULL;
 		optixBuildInputs[i].triangleArray.numSbtRecords						= buildInputs[i].numSbtRecords;
 		optixBuildInputs[i].triangleArray.primitiveIndexOffset				= 0;
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetBuffer				= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetSizeInBytes			= sizeof(uint32_t);
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
+	#if OPTIX_VERSION >= 70100
+		optixBuildInputs[i].triangleArray.indexFormat						= useInexBuffer ? OPTIX_INDICES_FORMAT_UNSIGNED_INT3 : OPTIX_INDICES_FORMAT_NONE;
+		optixBuildInputs[i].triangleArray.transformFormat					= OPTIX_TRANSFORM_FORMAT_NONE;
+	#else
+		optixBuildInputs[i].triangleArray.indexFormat						= OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+	#endif
 	}
 
 	OptixAccelBuildOptions						buildOptions = {};
@@ -300,6 +306,7 @@ void AccelStructAabbImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::A
 		m_aabbBuffers[i]															= (CUdeviceptr)buildInputs[i].aabbBuffer.data();
 		m_numSbtRecords																+= buildInputs[i].numSbtRecords;
 		optixBuildInputs[i].type													= OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
+	#if OPTIX_VERSION >= 70100
 		optixBuildInputs[i].customPrimitiveArray.flags								= m_geomFlags[i].data();
 		optixBuildInputs[i].customPrimitiveArray.aabbBuffers						= &m_aabbBuffers[i];
 		optixBuildInputs[i].customPrimitiveArray.strideInBytes						= sizeof(Aabb);
@@ -309,6 +316,17 @@ void AccelStructAabbImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::A
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetBuffer				= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetSizeInBytes			= sizeof(uint32_t);
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
+	#else
+		optixBuildInputs[i].aabbArray.flags											= m_geomFlags[i].data();
+		optixBuildInputs[i].aabbArray.aabbBuffers									= &m_aabbBuffers[i];
+		optixBuildInputs[i].aabbArray.strideInBytes									= sizeof(Aabb);
+		optixBuildInputs[i].aabbArray.numPrimitives									= buildInputs[i].numPrimitives;
+		optixBuildInputs[i].aabbArray.numSbtRecords									= buildInputs[i].numSbtRecords;
+		optixBuildInputs[i].aabbArray.primitiveIndexOffset							= 0;
+		optixBuildInputs[i].aabbArray.sbtIndexOffsetBuffer							= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
+		optixBuildInputs[i].aabbArray.sbtIndexOffsetSizeInBytes						= sizeof(uint32_t);
+		optixBuildInputs[i].aabbArray.sbtIndexOffsetStrideInBytes					= sizeof(uint32_t);
+	#endif
 	}
 
 	OptixAccelBuildOptions						buildOptions = {};
@@ -343,6 +361,11 @@ void AccelStructCurveImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::
 		m_buildInputs[i]										= buildInputs[i];
 		m_vertBuffers[i]										= (CUdeviceptr)buildInputs[i].vertexBuffer.data();
 		m_widthBuffers[i]										= (CUdeviceptr)buildInputs[i].widthBuffer.data();
+
+	#if OPTIX_VERSION >= 70400
+		optixBuildInputs[i].curveArray.endcapFlags				= OPTIX_CURVE_ENDCAP_DEFAULT;
+	#endif
+	#if OPTIX_VERSION >= 70100
 		optixBuildInputs[i].type								= OPTIX_BUILD_INPUT_TYPE_CURVES;
 		optixBuildInputs[i].curveArray.flag						= buildInputs[i].flags;
 		optixBuildInputs[i].curveArray.curveType				= static_cast<OptixPrimitiveType>(buildInputs[i].curveType);
@@ -357,8 +380,6 @@ void AccelStructCurveImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::
 		optixBuildInputs[i].curveArray.normalBuffers			= nullptr;
 		optixBuildInputs[i].curveArray.normalStrideInBytes		= 0;
 		optixBuildInputs[i].curveArray.primitiveIndexOffset		= 0;
-	#if OPTIX_VERSION >= 70400
-		optixBuildInputs[i].curveArray.endcapFlags				= OPTIX_CURVE_ENDCAP_DEFAULT;
 	#endif
 	}
 

@@ -235,7 +235,11 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 			}
 			else
 			{
+			#if OPTIX_VERSION >= 70100
 				m_scratchCache.resize(pAlloc, cacheSizes.withoutOverlapScratchSizeInBytes);
+			#else
+				m_scratchCache.resize(pAlloc, cacheSizes.recommendedScratchSizeInBytes);
+			#endif
 			#if OPTIX_VERSION >= 70500
 				m_internalGuideLayers[0].resize(pAlloc, cacheSizes.internalGuideLayerPixelSizeInBytes * maxInputWidth, maxInputHeight);
 				m_internalGuideLayers[1].resize(pAlloc, cacheSizes.internalGuideLayerPixelSizeInBytes * maxInputWidth, maxInputHeight);
