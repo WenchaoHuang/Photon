@@ -39,7 +39,7 @@ DenoiserImpl::DenoiserImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : m
 
 
 void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::Ptr2<const Color4f> input, dev::Ptr2<const Color4f> albedo, dev::Ptr2<const Color4f> normal,
-						  dev::Ptr2<const Color4f> previousOutput, dev::Ptr2<const ns::float2> flow, [[maybe_unused]] dev::Ptr2<const float> flowTrustworthiness, float blendFactor)
+						  [[maybe_unused]] dev::Ptr2<const Color4f> previousOutput, [[maybe_unused]] dev::Ptr2<const ns::float2> flow, [[maybe_unused]] dev::Ptr2<const float> flowTrustworthiness, float blendFactor)
 {
 	NS_ASSERT((albedo.width() == input.width()) && (albedo.height() == input.height()));
 	NS_ASSERT((normal.width() == input.width()) && (normal.height() == input.height()));
@@ -92,6 +92,7 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	denoiserParams.denoiseAlpha							= 0;
 #endif
 
+#if OPTIX_VERSION >= 70400
 	if (m_eModelKind & ModelKind::Temporal)
 	{
 		NS_ASSERT((flow.width() == input.width()) && (flow.height() == input.height()));
@@ -142,7 +143,7 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 		}
 	#endif
 	}
-
+#endif
 	this->internalSetup(stream, denoiserLayer.input.width, denoiserLayer.input.height);
 
 	OptixResult eResult = optixDenoiserComputeIntensity(m_hDenoiser, stream.handle(), &denoiserLayer.input,
@@ -173,10 +174,12 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 {
 	OptixDenoiserModelKind							denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV;
 	if (eModeKind == Normal)						{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV; }
-	else if (eModeKind == Temporal)					{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV; }
 #if OPTIX_VERSION >= 70500
 	else if (eModeKind == Upscale2x)				{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_UPSCALE2X; }
 	else if (eModeKind == TemporalUpscale2x)		{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X; }
+#endif
+#if OPTIX_VERSION >= 70400
+	else if (eModeKind == Temporal)					{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV; }
 #endif
 	else											{ NS_ASSERT(false); }
 

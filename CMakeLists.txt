@@ -69,7 +69,7 @@ target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/in
 
 # MSVC settings
 if(MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX /utf-8>)
+    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX /utf-8 -D_CRT_SECURE_NO_WARNINGS>)
 endif()
 
 # NVCC flags

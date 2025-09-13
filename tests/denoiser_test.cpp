@@ -42,11 +42,11 @@ void denoiser_test()
 	denoiser->preallocate(allocator, pt::Denoiser::TemporalUpscale2x, 1024, 1024);
 	denoiser->preallocate(allocator, pt::Denoiser::Upscale2x, 1024, 1024);
 #endif
+#if OPTIX_VERSION > 70400
 	denoiser->preallocate(allocator, pt::Denoiser::Temporal, 1024, 1024);
+#endif
 	denoiser->preallocate(allocator, pt::Denoiser::Normal, 1024, 1024);
 
 	assert(denoiser->maxInputWidth() == 1024);
 	assert(denoiser->maxInputHeight() == 1024);
-
-
 }
