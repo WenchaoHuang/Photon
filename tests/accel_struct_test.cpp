@@ -20,22 +20,36 @@
  *	SOFTWARE.
  */
 
-#include <stdlib.h>
+#include <nucleus/device.h>
+#include <nucleus/stream.h>
+#include <nucleus/context.h>
+#include <nucleus/array_1d.h>
+
+#include <photon/accel_struct.h>
+#include <photon/device_context.h>
 
 /*********************************************************************************
-***********************************    main    ***********************************
+****************************    accel_struct_test    *****************************
 *********************************************************************************/
 
-extern void pipeline_test();
-extern void denoiser_test();
-extern void accel_struct_test();
-
-int main()
+void accel_struct_test()
 {
-	pipeline_test();
-	denoiser_test();
-	accel_struct_test();
-	system("pause");
+	auto device = ns::Context::getInstance()->device(0);
+	auto deviceContext = pt::DeviceContext::create(device);
+	auto allocator = device->defaultAllocator();
+	auto & stream = device->defaultStream();
 
-	return 0;
+	auto instAccelStrut = deviceContext->createInstAccelStruct();
+	auto accelStrutAabb = deviceContext->createAccelStructAabb();
+	auto accelStrutCurve = deviceContext->createAccelStructCurve();
+	auto accelStrutSphere = deviceContext->createAccelStructSphere();
+	auto accelStrutTriangle = deviceContext->createAccelStructTriangle();
+
+	assert(instAccelStrut != nullptr);
+	assert(accelStrutAabb != nullptr);
+	assert(accelStrutCurve != nullptr);
+	assert(accelStrutSphere != nullptr);
+	assert(accelStrutTriangle != nullptr);
+
+	accelStrutAabb->refit(stream);
 }

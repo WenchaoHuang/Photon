@@ -51,6 +51,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 file(GLOB_RECURSE PHOTON_SOURCES
     "${PROJECT_SOURCE_DIR}/include/photon/*.h"
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/*.cuh"
     "${PROJECT_SOURCE_DIR}/src/*.cu"
     "${PROJECT_SOURCE_DIR}/src/*.h"
 )
@@ -85,6 +86,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/module_impl.h)
 source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline_impl.h)
 source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/denoiser_impl.h)
+source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/accel_struct_impl.h)
 source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/device_context_impl.h)
 
 # Optional: Add tests if enabled

@@ -19,13 +19,13 @@
  *	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *	SOFTWARE.
  */
-#pragma once
 
 #include <nucleus/device.h>
 #include <nucleus/context.h>
 #include <nucleus/allocator.h>
-#include <photon/device_context.h>
+
 #include <photon/denoiser.h>
+#include <photon/device_context.h>
 
 /*********************************************************************************
 ******************************    denoiser_test    *******************************
