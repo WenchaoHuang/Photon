@@ -82,6 +82,9 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	denoiserParams.hdrAverageColor						= (CUdeviceptr)m_avgColorCache.data();
 	denoiserParams.hdrIntensity							= (CUdeviceptr)m_intensityCache.data();
 	denoiserParams.temporalModeUsePreviousLayers		= (m_eModelKind & ModelKind::Temporal) && !previousOutput.empty() && (previousOutput != input);
+#if OPTIX_VERSION <= 70700
+	denoiserParams.denoiseAlpha							= OPTIX_DENOISER_ALPHA_MODE_COPY;
+#endif
 
 	if (m_eModelKind & ModelKind::Temporal)
 	{
@@ -173,7 +176,9 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 
 		OptixDenoiser						hDenoiser = nullptr;
 		OptixDenoiserOptions				denoiserOptions = {};
+	#if OPTIX_VERSION >= 80000
 		denoiserOptions.denoiseAlpha		= OPTIX_DENOISER_ALPHA_MODE_COPY;
+	#endif
 		denoiserOptions.guideAlbedo			= 1;
 		denoiserOptions.guideNormal			= 1;
 
