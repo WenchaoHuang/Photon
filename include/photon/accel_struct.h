@@ -183,6 +183,9 @@ namespace PHOTON_NAMESPACE
 	***************************    AccelStructCurve    ***************************
 	*****************************************************************************/
 
+	/**
+	 *	@note		Requires Optix version >= 7.1.0
+	 */
 	class AccelStructCurve : public GeomAccelStruct
 	{
 

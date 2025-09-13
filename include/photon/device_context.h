@@ -101,8 +101,10 @@ namespace PHOTON_NAMESPACE
 		//!	@brief		Create accel structs.
 		virtual std::unique_ptr<InstAccelStruct> createInstAccelStruct() = 0;
 		virtual std::unique_ptr<AccelStructAabb> createAccelStructAabb() = 0;
-		virtual std::unique_ptr<AccelStructCurve> createAccelStructCurve() = 0;
 		virtual std::unique_ptr<AccelStructTriangle> createAccelStructTriangle() = 0;
+	#if OPTIX_VERSION >= 70100
+		virtual std::unique_ptr<AccelStructCurve> createAccelStructCurve() = 0;
+	#endif
 	#if OPTIX_VERSION >= 70500
 		virtual std::unique_ptr<AccelStructSphere> createAccelStructSphere() = 0;
 	#endif
