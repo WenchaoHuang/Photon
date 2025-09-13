@@ -195,12 +195,14 @@ namespace PHOTON_NAMESPACE
 		enum CurveType
 		{
 			RoundLinear				= 0x2503,		//	Piecewise linear curve with circular cross-section.
-			RoundCatmullRom			= 0x2504,		//	CatmullRom curve with circular cross-section.
 			RoundCubicBSpline		= 0x2502,		//	B-spline curve of degree 3 with circular cross-section.
 			RoundQuadraticBSpline	= 0x2501,		//	B-spline curve of degree 2 with circular cross-section.
 		#if OPTIX_VERSION >= 70700
 			RoundCubicBezier		= 0x2507,		//	Bezier curve of degree 3 with circular cross-section.
 			FlatQuadraticBSpline	= 0x2505,		//	B-spline curve of degree 2 with oriented, flat cross-section.
+		#endif
+		#if OPTIX_VERSION >= 70400
+			RoundCatmullRom			= 0x2504,		//	CatmullRom curve with circular cross-section.
 		#endif
 		};
 

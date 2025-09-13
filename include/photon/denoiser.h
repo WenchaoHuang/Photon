@@ -53,10 +53,12 @@ namespace PHOTON_NAMESPACE
 		enum ModelKind
 		{
 			Normal				= 0,	//	Built-in model for denoising single image.
-			Temporal			= 1,	//	Built-in model for denoising image sequence, temporally stable.
 		#if OPTIX_VERSION >= 70500
 			Upscale2x			= 2,	//	Built-in model for denoising single image upscaling (supports AOVs).
 			TemporalUpscale2x	= 3,	//	Built-in model for denoising image sequence upscaling, temporally stable (supports AOVs).
+		#endif
+		#if OPTIX_VERSION >= 70400
+			Temporal			= 1,	//	Built-in model for denoising image sequence, temporally stable.
 		#endif
 		};
 

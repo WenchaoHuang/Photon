@@ -38,12 +38,14 @@ static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::DisableTriangleFaceCu
 #endif
 
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundLinear)						== OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
-static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCatmullRom)					== OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCubicBSpline)					== OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundQuadraticBSpline)				== OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
 #if OPTIX_VERSION >= 70700
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCubicBezier)					== OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BEZIER);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::FlatQuadraticBSpline)				== OPTIX_PRIMITIVE_TYPE_FLAT_QUADRATIC_BSPLINE);
+#endif
+#if OPTIX_VERSION >= 70400
+static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCatmullRom)					== OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM);
 #endif
 
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::None)								== OPTIX_INSTANCE_FLAG_NONE);
@@ -355,7 +357,9 @@ void AccelStructCurveImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::
 		optixBuildInputs[i].curveArray.normalBuffers			= nullptr;
 		optixBuildInputs[i].curveArray.normalStrideInBytes		= 0;
 		optixBuildInputs[i].curveArray.primitiveIndexOffset		= 0;
+	#if OPTIX_VERSION >= 70400
 		optixBuildInputs[i].curveArray.endcapFlags				= OPTIX_CURVE_ENDCAP_DEFAULT;
+	#endif
 	}
 
 	OptixAccelBuildOptions						buildOptions = {};
