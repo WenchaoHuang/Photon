@@ -86,16 +86,17 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 
 	OptixDenoiserParams									denoiserParams = {};
 	denoiserParams.blendFactor							= blendFactor;
-	denoiserParams.hdrAverageColor						= (CUdeviceptr)m_avgColorCache.data();
 	denoiserParams.hdrIntensity							= (CUdeviceptr)m_intensityCache.data();
 #if OPTIX_VERSION >= 70500
 	denoiserParams.temporalModeUsePreviousLayers		= (m_eModelKind & ModelKind::Temporal) && !previousOutput.empty() && (previousOutput != input);
 #endif
-
 #if (OPTIX_VERSION >= 70500) && (OPTIX_VERSION <= 70700)
 	denoiserParams.denoiseAlpha							= OPTIX_DENOISER_ALPHA_MODE_COPY;
 #elif OPTIX_VERSION <= 70400
 	denoiserParams.denoiseAlpha							= 0;
+#endif
+#if OPTIX_VERSION >= 70200
+	denoiserParams.hdrAverageColor						= (CUdeviceptr)m_avgColorCache.data();
 #endif
 
 #if OPTIX_VERSION >= 70400
@@ -157,8 +158,9 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 
 	if (eResult == OPTIX_SUCCESS)
 	{
-		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &inputImage,
-												   (CUdeviceptr)m_avgColorCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+	#if OPTIX_VERSION >= 70200
+		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &inputImage, (CUdeviceptr)m_avgColorCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+	#endif
 
 		if (eResult == OPTIX_SUCCESS)
 		{
@@ -183,14 +185,19 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 
 void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigned int maxInputWidth, unsigned int maxInputHeight)
 {
+#if OPTIX_VERSION >= 70200
 	OptixDenoiserModelKind							denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV;
 	if (eModeKind == Normal)						{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV; }
-#if OPTIX_VERSION >= 70500
-	else if (eModeKind == Upscale2x)				{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_UPSCALE2X; }
-	else if (eModeKind == TemporalUpscale2x)		{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X; }
+#else
+	OptixDenoiserModelKind							denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_HDR;
+	if (eModeKind == Normal)						{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_HDR; }
 #endif
 #if OPTIX_VERSION >= 70400
 	else if (eModeKind == Temporal)					{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV; }
+#endif
+#if OPTIX_VERSION >= 70500
+	else if (eModeKind == Upscale2x)				{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_UPSCALE2X; }
+	else if (eModeKind == TemporalUpscale2x)		{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X; }
 #endif
 	else											{ NS_ASSERT(false); }
 
