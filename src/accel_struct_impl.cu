@@ -33,7 +33,9 @@ PHOTON_USING_NAMESPACE
 static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::None)								== OPTIX_GEOMETRY_FLAG_NONE);
 static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::DisableAnyhit)						== OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT);
 static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::RequireSingleAnyhitCall)				== OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL);
+#if OPTIX_VERSION >= 70500
 static_assert(static_cast<int>(GeomAccelStruct::GeomFlags::DisableTriangleFaceCulling)			== OPTIX_GEOMETRY_FLAG_DISABLE_TRIANGLE_FACE_CULLING);
+#endif
 
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundLinear)						== OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR);
 static_assert(static_cast<int>(AccelStructCurve::CurveType::RoundCatmullRom)					== OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM);
@@ -407,6 +409,7 @@ void AccelStructSphereImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns:
 		m_vertBuffers[i]												= (CUdeviceptr)buildInputs[i].vertexBuffer.data();
 		m_radiusBuffers[i]												= (CUdeviceptr)buildInputs[i].radiusBuffer.data();
 		m_numSbtRecords													+= buildInputs[i].numSbtRecords;
+	#if OPTIX_VERSION >= 70500
 		optixBuildInputs[i].type										= OPTIX_BUILD_INPUT_TYPE_SPHERES;
 		optixBuildInputs[i].sphereArray.flags							= m_geomFlags[i].data();
 		optixBuildInputs[i].sphereArray.numVertices						= buildInputs[i].numVertices;
@@ -419,6 +422,7 @@ void AccelStructSphereImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns:
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetBuffer			= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetSizeInBytes		= sizeof(uint32_t);
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
+	#endif
 	}
 
 	OptixAccelBuildOptions						buildOptions = {};

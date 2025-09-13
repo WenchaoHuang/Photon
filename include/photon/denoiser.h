@@ -22,6 +22,7 @@
 #pragma once
 
 #include "fwd.h"
+#include <optix.h>
 #include <nucleus/vector_types.h>
 #include <nucleus/device_pointer.h>
 
@@ -53,8 +54,10 @@ namespace PHOTON_NAMESPACE
 		{
 			Normal				= 0,	//	Built-in model for denoising single image.
 			Temporal			= 1,	//	Built-in model for denoising image sequence, temporally stable.
+		#if OPTIX_VERSION >= 70500
 			Upscale2x			= 2,	//	Built-in model for denoising single image upscaling (supports AOVs).
 			TemporalUpscale2x	= 3,	//	Built-in model for denoising image sequence upscaling, temporally stable (supports AOVs).
+		#endif
 		};
 
 		//!	@brief		Releases allocated resources.
