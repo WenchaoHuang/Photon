@@ -48,9 +48,11 @@ static_assert(static_cast<int>(InstAccelStruct::InstFlags::None)								== OPTIX
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableAnyhit)						== OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::EnforceAnyhit)						== OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::eFlagFlipTriangleFacing)				== OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING);
-static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableOpacityMicromaps)				== OPTIX_INSTANCE_FLAG_DISABLE_OPACITY_MICROMAPS);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableTriangleFaceCulling)			== OPTIX_INSTANCE_FLAG_DISABLE_TRIANGLE_FACE_CULLING);
+#if OPTIX_VERSION >= 70600
+static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableOpacityMicromaps)				== OPTIX_INSTANCE_FLAG_DISABLE_OPACITY_MICROMAPS);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::ForceOpacityMicromapAsTwoState)		== OPTIX_INSTANCE_FLAG_FORCE_OPACITY_MICROMAP_2_STATE);
+#endif
 
 /*********************************************************************************
 *****************************    AccelStructBase    ******************************
@@ -490,7 +492,9 @@ void InstAccelStructImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::A
 	OptixBuildInput										optixBuildInput = {};
 	optixBuildInput.type								= OPTIX_BUILD_INPUT_TYPE_INSTANCES;
 	optixBuildInput.instanceArray.instances				= (CUdeviceptr)m_instances.data();
+#if OPTIX_VERSION >= 70600
 	optixBuildInput.instanceArray.instanceStride		= sizeof(OptixInstance);
+#endif
 	optixBuildInput.instanceArray.numInstances			= static_cast<uint32_t>(m_instances.size());
 
 	OptixAccelBuildOptions								buildOptions = {};

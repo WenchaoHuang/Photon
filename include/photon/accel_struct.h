@@ -272,8 +272,10 @@ namespace PHOTON_NAMESPACE
 			eFlagFlipTriangleFacing				= 1u << 1,		//	Flip triangle orientation. This affects front/backface culling as well as the reported face in case of a hit.
 			DisableAnyhit						= 1u << 2,		//	Disable anyhit programs for all geometries of the instance. Can be overridden by Flags::EnforceAnyhit. This flag is mutually exclusive with Flags::EnforceAnyhit.
 			EnforceAnyhit						= 1u << 3,		//	Enables anyhit programs for all geometries of the instance. Overrides OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT. Can be overridden by Flags::eDisableAnyhit.
+		#if OPTIX_VERSION >= 70600
 			ForceOpacityMicromapAsTwoState		= 1u << 4,		//	Force 4-state opacity micromaps to behave as 2-state opacity micromaps during traversal.
 			DisableOpacityMicromaps				= 1u << 5,		//	Don't perform opacity micromap query for this instance. GAS must be built with ALLOW_DISABLE_OPACITY_MICROMAPS for this to be valid.
+		#endif
 		};
 
 		//	Build input for IAS.
