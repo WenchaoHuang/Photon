@@ -131,7 +131,11 @@ std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * pt
 {
 	OptixModule hModule = nullptr;
 
+#if OPTIX_VERSION >= 70700
 	OptixResult err = optixModuleCreate(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, (const char*)ptxStr, ptxSize, nullptr, nullptr, &hModule);
+#else
+	OptixResult err = optixModuleCreateFromPTX(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, (const char*)ptxStr, ptxSize, nullptr, nullptr, &hModule);
+#endif
 
 	if (err == OPTIX_SUCCESS)
 	{
