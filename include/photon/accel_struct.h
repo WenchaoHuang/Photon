@@ -99,7 +99,7 @@ namespace PHOTON_NAMESPACE
 		enum PrimitiveType
 		{
 			Triangle,		//	Geometry acceleration structure containing built-in triangles.
-			Sphere,		//	Geometry acceleration structure containing built-in spheres.
+			Sphere,			//	Geometry acceleration structure containing built-in spheres.
 			Curve,			//	Geometry acceleration structure containing built-in curve primitives.
 			AABB,			//	Geometry acceleration structure containing custom primitives.
 		};
@@ -110,7 +110,9 @@ namespace PHOTON_NAMESPACE
 			None							= 0,			//	No flags set.
 			DisableAnyhit					= 1u << 0,		//	Disables the invocation of the anyhit program. Can be overridden by OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT and OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
 			RequireSingleAnyhitCall			= 1u << 1,		//	If set, an intersection with the primitive will trigger one and only one invocation of the anyhit program. Otherwise, the anyhit program may be invoked more than once.
+		#if OPTIX_VERSION >= 70500
 			DisableTriangleFaceCulling		= 1u << 2,		//	Prevent triangles from getting culled due to their orientation. Effectively ignores ray flags OPTIX_RAY_FLAG_CULL_BACK_FACING_TRIANGLES and OPTIX_RAY_FLAG_CULL_FRONT_FACING_TRIANGLES.
+		#endif
 		};
 
 		//	Function to retrieve the subtype of the acceleration structure, indicating it as a geometry type.
@@ -228,6 +230,9 @@ namespace PHOTON_NAMESPACE
 	**************************    AccelStructSphere    ***************************
 	*****************************************************************************/
 
+	/**
+	 *	@note		Requires Optix version >= 7.5.0
+	 */
 	class AccelStructSphere : public GeomAccelStruct
 	{
 

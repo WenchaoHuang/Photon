@@ -82,9 +82,14 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	denoiserParams.blendFactor							= blendFactor;
 	denoiserParams.hdrAverageColor						= (CUdeviceptr)m_avgColorCache.data();
 	denoiserParams.hdrIntensity							= (CUdeviceptr)m_intensityCache.data();
+#if OPTIX_VERSION >= 70500
 	denoiserParams.temporalModeUsePreviousLayers		= (m_eModelKind & ModelKind::Temporal) && !previousOutput.empty() && (previousOutput != input);
-#if OPTIX_VERSION <= 70700
+#endif
+
+#if (OPTIX_VERSION >= 70500) && (OPTIX_VERSION <= 70700)
 	denoiserParams.denoiseAlpha							= OPTIX_DENOISER_ALPHA_MODE_COPY;
+#elif OPTIX_VERSION <= 70400
+	denoiserParams.denoiseAlpha							= 0;
 #endif
 
 	if (m_eModelKind & ModelKind::Temporal)
@@ -114,6 +119,7 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 		denoiserGuideLayer.flowTrustworthiness.rowStrideInBytes						= flowTrustworthiness.pitch();
 		denoiserGuideLayer.flowTrustworthiness.pixelStrideInBytes					= sizeof(float);
 	#endif
+	#if OPTIX_VERSION >= 70500
 		denoiserGuideLayer.previousOutputInternalGuideLayer.format					= OPTIX_PIXEL_FORMAT_INTERNAL_GUIDE_LAYER;
 		denoiserGuideLayer.previousOutputInternalGuideLayer.data					= (CUdeviceptr)m_internalGuideLayers[0].data();
 		denoiserGuideLayer.previousOutputInternalGuideLayer.width					= input.width();
@@ -134,6 +140,7 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 			//!	@note	The previousOutputInternalGuideLayer image content must be set to zero for the first frame.
 			stream.memsetZero(m_internalGuideLayers[0].data(), m_internalGuideLayers[0].bytes());
 		}
+	#endif
 	}
 
 	this->internalSetup(stream, denoiserLayer.input.width, denoiserLayer.input.height);
@@ -166,9 +173,11 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 {
 	OptixDenoiserModelKind							denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV;
 	if (eModeKind == Normal)						{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_AOV; }
-	else if (eModeKind == Upscale2x)				{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_UPSCALE2X; }
 	else if (eModeKind == Temporal)					{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV; }
+#if OPTIX_VERSION >= 70500
+	else if (eModeKind == Upscale2x)				{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_UPSCALE2X; }
 	else if (eModeKind == TemporalUpscale2x)		{ denoiserModelKind = OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X; }
+#endif
 	else											{ NS_ASSERT(false); }
 
 	if ((m_maxInputWidth != maxInputWidth) || (m_maxInputHeight != maxInputHeight) || (m_eModelKind != eModeKind))
@@ -197,11 +206,13 @@ void DenoiserImpl::preallocate(ns::AllocPtr pAlloc, ModelKind eModeKind, unsigne
 			}
 			else
 			{
+				m_scratchCache.resize(pAlloc, cacheSizes.withoutOverlapScratchSizeInBytes);
+			#if OPTIX_VERSION >= 70500
 				m_internalGuideLayers[0].resize(pAlloc, cacheSizes.internalGuideLayerPixelSizeInBytes * maxInputWidth, maxInputHeight);
 				m_internalGuideLayers[1].resize(pAlloc, cacheSizes.internalGuideLayerPixelSizeInBytes * maxInputWidth, maxInputHeight);
-				m_scratchCache.resize(pAlloc, cacheSizes.withoutOverlapScratchSizeInBytes);
 				m_avgColorCache.resize(pAlloc, cacheSizes.computeAverageColorSizeInBytes);
 				m_intensityCache.resize(pAlloc, cacheSizes.computeIntensitySizeInBytes);
+			#endif
 				m_stateCache.resize(pAlloc, cacheSizes.stateSizeInBytes);
 				m_maxInputHeight = maxInputHeight;
 				m_maxInputWidth = maxInputWidth;

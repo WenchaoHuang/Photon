@@ -42,14 +42,16 @@ void accel_struct_test()
 	auto instAccelStrut = deviceContext->createInstAccelStruct();
 	auto accelStrutAabb = deviceContext->createAccelStructAabb();
 	auto accelStrutCurve = deviceContext->createAccelStructCurve();
-	auto accelStrutSphere = deviceContext->createAccelStructSphere();
 	auto accelStrutTriangle = deviceContext->createAccelStructTriangle();
 
 	assert(instAccelStrut != nullptr);
 	assert(accelStrutAabb != nullptr);
 	assert(accelStrutCurve != nullptr);
-	assert(accelStrutSphere != nullptr);
 	assert(accelStrutTriangle != nullptr);
+#if OPTIX_VERSION >= 70500
+	auto accelStrutSphere = deviceContext->createAccelStructSphere();
+	assert(accelStrutSphere != nullptr);
+#endif
 
 	accelStrutAabb->refit(stream);
 }
