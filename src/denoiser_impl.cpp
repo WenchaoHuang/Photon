@@ -39,7 +39,7 @@ DenoiserImpl::DenoiserImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : m
 
 
 void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::Ptr2<const Color4f> input, dev::Ptr2<const Color4f> albedo, dev::Ptr2<const Color4f> normal,
-						  dev::Ptr2<const Color4f> previousOutput, dev::Ptr2<const ns::float2> flow, dev::Ptr2<const float> flowTrustworthiness, float blendFactor)
+						  dev::Ptr2<const Color4f> previousOutput, dev::Ptr2<const ns::float2> flow, [[maybe_unused]] dev::Ptr2<const float> flowTrustworthiness, float blendFactor)
 {
 	NS_ASSERT((albedo.width() == input.width()) && (albedo.height() == input.height()));
 	NS_ASSERT((normal.width() == input.width()) && (normal.height() == input.height()));
@@ -48,8 +48,9 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	OptixDenoiserParams									denoiserParams = {};
 	OptixDenoiserGuideLayer								denoiserGuideLayer = {};
 
+#if OPTIX_VERSION >= 70700
 	denoiserLayer.type									= OPTIX_DENOISER_AOV_TYPE_NONE;
-
+#endif
 	denoiserLayer.input.format							= OPTIX_PIXEL_FORMAT_FLOAT4;
 	denoiserLayer.input.data							= (CUdeviceptr)input.data();
 	denoiserLayer.input.width							= input.width();
@@ -105,14 +106,14 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 		denoiserGuideLayer.flow.height												= flow.height();
 		denoiserGuideLayer.flow.rowStrideInBytes									= flow.pitch();
 		denoiserGuideLayer.flow.pixelStrideInBytes									= sizeof(ns::float2);
-
+	#if OPTIX_VERSION >= 70700
 		denoiserGuideLayer.flowTrustworthiness.format								= OPTIX_PIXEL_FORMAT_FLOAT1;
 		denoiserGuideLayer.flowTrustworthiness.data									= (CUdeviceptr)flowTrustworthiness.data();
 		denoiserGuideLayer.flowTrustworthiness.width								= flowTrustworthiness.width();
 		denoiserGuideLayer.flowTrustworthiness.height								= flowTrustworthiness.height();
 		denoiserGuideLayer.flowTrustworthiness.rowStrideInBytes						= flowTrustworthiness.pitch();
 		denoiserGuideLayer.flowTrustworthiness.pixelStrideInBytes					= sizeof(float);
-
+	#endif
 		denoiserGuideLayer.previousOutputInternalGuideLayer.format					= OPTIX_PIXEL_FORMAT_INTERNAL_GUIDE_LAYER;
 		denoiserGuideLayer.previousOutputInternalGuideLayer.data					= (CUdeviceptr)m_internalGuideLayers[0].data();
 		denoiserGuideLayer.previousOutputInternalGuideLayer.width					= input.width();
