@@ -29,8 +29,9 @@
 #include <photon/module.h>
 #include <photon/pipeline.h>
 #include <photon/device_context.h>
-#include "rt_program.ptx.h"
+
 #include "launch_params.h"
+#include "rt_program.ptx.h"
 
 /*********************************************************************************
 ******************************    pipeline_test    *******************************

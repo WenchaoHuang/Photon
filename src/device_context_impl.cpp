@@ -23,6 +23,7 @@
 #include "module_impl.h"
 #include "pipeline_impl.h"
 #include "denoiser_impl.h"
+#include "accel_struct_impl.h"
 #include "device_context_impl.h"
 
 #include <nucleus/device.h>
@@ -177,6 +178,36 @@ std::unique_ptr<Pipeline> DeviceContextImpl::createPipeline(ns::ArrayProxy<std::
 	}
 
 	return std::make_unique<PipelineImpl>(this->shared_from_this(), hPipeline);
+}
+
+
+std::unique_ptr<InstAccelStruct> DeviceContextImpl::createInstAccelStruct()
+{
+	return std::make_unique<InstAccelStructImpl>(this->shared_from_this());
+}
+
+
+std::unique_ptr<AccelStructAabb> DeviceContextImpl::createAccelStructAabb()
+{
+	return std::make_unique<AccelStructAabbImpl>(this->shared_from_this());
+}
+
+
+std::unique_ptr<AccelStructCurve> DeviceContextImpl::createAccelStructCurve()
+{
+	return std::make_unique<AccelStructCurveImpl>(this->shared_from_this());
+}
+
+
+std::unique_ptr<AccelStructSphere> DeviceContextImpl::createAccelStructSphere()
+{
+	return std::make_unique<AccelStructSphereImpl>(this->shared_from_this());
+}
+
+
+std::unique_ptr<AccelStructTriangle> DeviceContextImpl::createAccelStructTriangle()
+{
+	return std::make_unique<AccelStructTriangleImpl>(this->shared_from_this());
 }
 
 

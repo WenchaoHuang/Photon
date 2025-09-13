@@ -55,6 +55,12 @@ namespace PHOTON_NAMESPACE
 														 const OptixPipelineCompileOptions & pipelineCompileOptions,
 														 const OptixPipelineLinkOptions & pipelineLinkOptions) override;
 
+		virtual std::unique_ptr<InstAccelStruct> createInstAccelStruct() override;
+		virtual std::unique_ptr<AccelStructAabb> createAccelStructAabb() override;
+		virtual std::unique_ptr<AccelStructCurve> createAccelStructCurve() override;
+		virtual std::unique_ptr<AccelStructSphere> createAccelStructSphere() override;
+		virtual std::unique_ptr<AccelStructTriangle> createAccelStructTriangle() override;
+
 		virtual std::unique_ptr<Denoiser> createDenoiser() override;
 
 	private:
