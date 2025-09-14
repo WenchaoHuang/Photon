@@ -20,7 +20,6 @@
  *	SOFTWARE.
  */
 
-#include "module_impl.h"
 #include "pipeline_impl.h"
 #include "denoiser_impl.h"
 #include "accel_struct_impl.h"

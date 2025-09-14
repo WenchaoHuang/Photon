@@ -26,7 +26,6 @@
 #include <nucleus/context.h>
 #include <nucleus/array_1d.h>
 
-#include <photon/module.h>
 #include <photon/pipeline.h>
 #include <photon/device_context.h>
 

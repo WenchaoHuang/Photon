@@ -23,10 +23,77 @@
 
 #include "pipeline.h"
 #include <optix.h>
+#include <map>
 
 namespace PHOTON_NAMESPACE
 {
+	class ModuleImpl;
+	class ProgramImpl;
 	class DeviceContextImpl;
+
+	/*****************************************************************************
+	******************************    ModuleImpl    ******************************
+	*****************************************************************************/
+
+	class ModuleImpl : public Module, public std::enable_shared_from_this<ModuleImpl>
+	{
+
+	public:
+
+		ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule);
+
+		~ModuleImpl();
+
+	public:
+
+		virtual std::shared_ptr<Program> at(const std::string & funcName) override;
+
+		std::shared_ptr<DeviceContextImpl> deviceContext() const { return m_deviceContext; }
+
+	private:
+
+		std::map<std::string, std::weak_ptr<ProgramImpl>>		m_programMap;
+
+		const std::shared_ptr<DeviceContextImpl>				m_deviceContext;
+
+		const OptixModule										m_hModule;
+	};
+
+	/*****************************************************************************
+	*****************************    ProgramImpl    ******************************
+	*****************************************************************************/
+
+	class ProgramImpl : public Program
+	{
+
+	public:
+
+		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type);
+
+		~ProgramImpl();
+
+	public:
+
+		virtual Type type() const override { return m_progType; }
+
+		virtual const SbtHeader & header() const override { return m_header; }
+
+		static Program::Type queryProgramType(const std::string & funcName);
+
+		std::shared_ptr<DeviceContextImpl> deviceContext() const;
+
+		OptixProgramGroup handle() { return m_hProgramGroup; }
+
+	private:
+
+		const std::shared_ptr<ModuleImpl>		m_module;
+
+		const OptixProgramGroup					m_hProgramGroup;
+
+		const Program::Type						m_progType;
+
+		SbtHeader								m_header;
+	};
 
 	/*****************************************************************************
 	*****************************    PipelineImpl    *****************************

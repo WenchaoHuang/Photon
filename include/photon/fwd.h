@@ -23,6 +23,7 @@
 
 #include "macros.h"
 #include <nucleus/fwd.h>
+#include <nucleus/vector_types.h>
 
 /*********************************************************************************
 ***************************    Forward Declarations    ***************************
@@ -45,19 +46,6 @@ namespace PHOTON_NAMESPACE
 	class AccelStructTriangle;
 
 	struct NS_ALIGN(16) Color4f { float r, g, b, a; };
+	struct NS_ALIGN(16) Mat4x4 { ns::float4 rows[4]; };
+	struct NS_ALIGN(8) Aabb { ns::float3 lower, upper; };
 }
-
-/*********************************************************************************
-********************************    Type Alias    ********************************
-*********************************************************************************/
-
-using PtModule							= PHOTON_NAMESPACE::Module;
-using PtDenoiser						= PHOTON_NAMESPACE::Denoiser;
-using PtAccelStruct						= PHOTON_NAMESPACE::AccelStruct;
-using PtDeviceContext					= PHOTON_NAMESPACE::DeviceContext;
-using PtInstAccelStruct					= PHOTON_NAMESPACE::InstAccelStruct;
-using PtGeomAccelStruct					= PHOTON_NAMESPACE::GeomAccelStruct;
-using PtAccelStructAabb					= PHOTON_NAMESPACE::AccelStructAabb;
-using PtAccelStructCurve				= PHOTON_NAMESPACE::AccelStructCurve;
-using PtAccelStructSphere				= PHOTON_NAMESPACE::AccelStructSphere;
-using PtAccelStructTriangle				= PHOTON_NAMESPACE::AccelStructTriangle;
