@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include "../deps/optix-dev/include/optix_device.h"
+#include <optix_device.h>
 #include "launch_params.h"
 
 static __constant__ LaunchParams launchParams;

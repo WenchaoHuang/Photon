@@ -22,7 +22,6 @@ cmake_minimum_required(VERSION 3.18)
 
 # Target name
 set(TARGET_NAME photon-tests)
-project(${TARGET_NAME} LANGUAGES CXX CUDA)
 
 # Source files
 file(GLOB TEST_CPP_SOURCES CONFIGURE_DEPENDS
@@ -54,7 +53,7 @@ foreach(PTX_SOURCE ${PTX_SOURCES})
     get_filename_component(base ${PTX_SOURCE} NAME_WE)
 
     # Compile CUDA file into PTX
-    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE})
+    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE} OPTIONS -I ${OPTIX_INCLUDE})
 
     # Generated header file path
     set(PTX_HEADER "${GENERATED_HEADERS_DIR}/${base}.ptx.h")
@@ -74,9 +73,8 @@ foreach(PTX_SOURCE ${PTX_SOURCES})
     target_sources(${TARGET_NAME} PRIVATE ${${base}_ptx})
     target_sources(${TARGET_NAME} PRIVATE ${PTX_HEADER})
 
-    # Group PTX file and header in IDE project views
-    source_group("PTX Headers" FILES ${PTX_HEADER})
-    source_group("PTX Files" FILES ${${base}_ptx})
+    # Group PTX file in IDE project views
+    source_group("Generated Files" FILES ${${base}_ptx})
 endforeach()
 
 # Link directories
