@@ -102,8 +102,8 @@ namespace PHOTON_NAMESPACE
 		virtual const SbtHeader & header() const = 0;
 
 		//	TODO
-		static std::shared_ptr<Program> combine(std::shared_ptr<Program> program0, std::shared_ptr<Program> program1);
-		static std::shared_ptr<Program> combine(std::shared_ptr<Program> program0, std::shared_ptr<Program> program1, std::shared_ptr<Program> program2);
+		PHOTON_API static std::shared_ptr<Program> combine(std::shared_ptr<Program> program0, std::shared_ptr<Program> program1);
+		PHOTON_API static std::shared_ptr<Program> combine(std::shared_ptr<Program> program0, std::shared_ptr<Program> program1, std::shared_ptr<Program> program2);
 	};
 
 	/*****************************************************************************

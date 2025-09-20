@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,24 +21,16 @@
  */
 #pragma once
 
-#include "photon_export.h"
-#include <nucleus/macros.h>
-
 /*********************************************************************************
-***************************    CUDA Compatibilities    ***************************
+****************************    Export/Import API     ****************************
 *********************************************************************************/
 
-#define __RT_KERNEL__						extern "C" __global__
-#define __RT_CONSTANT__						extern "C" __constant__ static
-
-/*********************************************************************************
-********************************    Namespace    *********************************
-*********************************************************************************/
-
-#ifndef PHOTON_NAMESPACE
-	#define PHOTON_NAMESPACE				pt
+#if defined(_WIN32)
+	#ifdef PHOTON_API_BUILD
+		#define PHOTON_API		__declspec(dllexport)
+  	#else
+		#define PHOTON_API		__declspec(dllimport)
+	#endif
+#else
+	#define PHOTON_API
 #endif
-
-#define PHOTON_USING_NAMESPACE				using namespace PHOTON_NAMESPACE;
-
-namespace PHOTON_NAMESPACE {}

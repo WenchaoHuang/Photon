@@ -130,6 +130,6 @@ namespace PHOTON_NAMESPACE
 		 *	@return		Return shared pointer to the newly created context.
 		 *	@throw		OptixResult - Throw `OptixResult` in case of failure.
 		 */
-		static std::shared_ptr<DeviceContext> create(ns::Device * device, int logLevel = 3, bool validationMode = false);
+		PHOTON_API static std::shared_ptr<DeviceContext> create(ns::Device * device, int logLevel = 3, bool validationMode = false);
 	};
 }

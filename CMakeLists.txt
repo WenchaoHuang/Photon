@@ -29,6 +29,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Library options
 option(PHOTON_BUILD_TESTS "Build tests for photon library" OFF)
 option(PHOTON_BUILD_EXAMPLES "Build examples for photon library" OFF)
+option(PHOTON_BUILD_SHARED_LIB "Build Photon as shared library" ON)
 
 # Optix SDK
 set(OPTIX_INCLUDE "${PROJECT_SOURCE_DIR}/deps/optix-dev/include" CACHE PATH "Path to OptiX include directory")
@@ -57,14 +58,38 @@ file(GLOB PHOTON_SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/*.h"
 )
 
-# Create the static library
-add_library(${TARGET_NAME} STATIC ${PHOTON_SOURCES})
+# Build library
+if (PHOTON_BUILD_SHARED_LIB)
+    # Create the shared library
+    add_library(${TARGET_NAME} SHARED ${PHOTON_SOURCES})
+
+    # Export macro
+    target_compile_definitions(${TARGET_NAME} PRIVATE PHOTON_API_BUILD)
+
+    # Export header
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_shared.h
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
+        COPYONLY
+    )
+else()
+    # Create the static library
+    add_library(${TARGET_NAME} STATIC ${NUCLEUS_SOURCES})
+
+    # Export header
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_static.h
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
+        COPYONLY
+    )
+endif()
 
 # Link directories
 target_link_libraries(${TARGET_NAME} PUBLIC nucleus)
 
 # Include directories
 target_include_directories(${TARGET_NAME} PUBLIC ${OPTIX_INCLUDE})
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/photon)
 
