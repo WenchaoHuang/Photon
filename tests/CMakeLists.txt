@@ -32,6 +32,12 @@ file(GLOB TEST_CUDA_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cu"
 )
 
+# List of CUDA source files that should be compiled to PTX format
+set(PTX_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/rt_program.cu"
+    "${CMAKE_CURRENT_SOURCE_DIR}/payload_test.cu"
+)
+
 # Create the executable target
 add_executable(${TARGET_NAME} ${TEST_CPP_SOURCES} ${TEST_CUDA_SOURCES})
 
@@ -44,8 +50,21 @@ set(GENERATED_HEADERS)
 # List to track generated header files (populated in the loop below)
 set(GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/ptx")
 
-# List of CUDA source files that should be compiled to PTX format
-set(PTX_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/rt_program.cu")
+
+macro(make_cuda_include_flags out_flags includes)
+	set(${out_flags} "")
+	foreach(dir ${${includes}})
+		list(APPEND ${out_flags} -I"${dir}")
+	endforeach()
+endmacro()
+
+# Nucleus and Photon include directories
+get_target_property(NUCLEUS_INCLUDE nucleus INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(PHOTON_INCLUDE photon INTERFACE_INCLUDE_DIRECTORIES)
+
+# Nucleus and Photon include flags
+make_cuda_include_flags(NUCLEUS_INCLUDE_FLAGS NUCLEUS_INCLUDE)
+make_cuda_include_flags(PHOTON_INCLUDE_FLAGS PHOTON_INCLUDE)
 
 # PTX Generation Pipeline
 foreach(PTX_SOURCE ${PTX_SOURCES})
@@ -53,7 +72,11 @@ foreach(PTX_SOURCE ${PTX_SOURCES})
     get_filename_component(base ${PTX_SOURCE} NAME_WE)
 
     # Compile CUDA file into PTX
-    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE} OPTIONS -I ${OPTIX_INCLUDE})
+    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE} OPTIONS
+        ${NUCLEUS_INCLUDE_FLAGS}
+        ${PHOTON_INCLUDE_FLAGS}
+        -std=c++20
+    )
 
     # Generated header file path
     set(PTX_HEADER "${GENERATED_HEADERS_DIR}/${base}.ptx.h")

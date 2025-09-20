@@ -49,6 +49,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # Source files
 file(GLOB PHOTON_SOURCES CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/include/photon/*.cuh"
     "${PROJECT_SOURCE_DIR}/include/photon/*.h"
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/*.cuh"
