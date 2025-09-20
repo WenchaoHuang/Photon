@@ -23,31 +23,27 @@
 
 #include <photon/payload.cuh>
 
+using RayDirType = pt::Payload<float3, 0, 1, 2>;
+
 /*********************************************************************************
-***********************************    main    ***********************************
+*********************************    kernels    **********************************
 *********************************************************************************/
 
-extern "C"
+__RT_KERNEL__ void __raygen__()
 {
-	using RayDirType = pt::Payload<float3, 0, 1, 2>;
+	RayDirType rayDir;
+	pt::setPayload<0>(0);
+	pt::setPayload<long long, 0, 1>(0);
+	pt::setPayload(rayDir);
+}
 
 
-	__global__ void __raygen__()
-	{
-		RayDirType rayDir;
-		pt::setPayload<0>(0);
-		pt::setPayload<long long, 0, 1>(0);
-		pt::setPayload(rayDir);
-	}
-
-
-	__global__ void __miss__()
-	{
-		pt::setPayload<0>(0);
-		auto p0 = pt::getPayload<0>();
-		auto p1 = pt::getPayload<float, 0>();
-		auto rayDir = pt::getPayload<RayDirType>();
-		rayDir = float3{ 0, 1, 0 };
-		pt::setPayload(rayDir);
-	}
+__RT_KERNEL__ void __miss__()
+{
+	pt::setPayload<0>(0);
+	auto p0 = pt::getPayload<0>();
+	auto p1 = pt::getPayload<float, 0>();
+	auto rayDir = pt::getPayload<RayDirType>();
+	rayDir = float3{ 0, 1, 0 };
+	pt::setPayload(rayDir);
 }

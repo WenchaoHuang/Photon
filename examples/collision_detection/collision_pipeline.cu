@@ -22,53 +22,57 @@
 
 #include <stdio.h>
 #include <cuda_runtime.h>
+#include <photon/macros.h>
 #include <device_launch_parameters.h>
 #include <optix_device.h>
 #include "launch_params.h"
 
-static __constant__ LaunchParams launchParams;
+__RT_CONSTANT__ LaunchParams launchParams;
 
-extern "C"
+/*********************************************************************************
+*********************************    kernels    **********************************
+*********************************************************************************/
+
+__RT_KERNEL__ void __raygen__()
 {
-	__global__ void __raygen__()
+	auto vIdx = optixGetLaunchIndex().x;
+	auto p0 = launchParams.vertices[vIdx];
+
+	optixTrace(launchParams.traversable,
+				float3{ p0.x, p0.y, p0.z },
+				float3{ 1.0f, 0.0f, 0.0f },
+				0.0f,
+				1e-6f,
+				0.0f,
+				OptixVisibilityMask(255),
+				OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+				0,
+				0,
+				0);
+}
+
+
+__RT_KERNEL__ void __intersection__()
+{
+	auto p0 = optixGetWorldRayOrigin();
+	auto vIdx0 = optixGetLaunchIndex().x;
+	auto vIdx1 = optixGetPrimitiveIndex();
+
+	if (vIdx1 <= vIdx0)
+		return;
+
+	auto p1 = launchParams.vertices[vIdx1];
+	float3 d = { p1.x - p0.x, p1.y - p0.y, p1.z - p0.z };
+	float len = sqrtf((d.x * d.x) + (d.y * d.y) + (d.z * d.z));
+
+	if (len < launchParams.radius)
 	{
-		auto vIdx = optixGetLaunchIndex().x;
-		auto p0 = launchParams.vertices[vIdx];
-
-		optixTrace(launchParams.traversable,
-				   float3{ p0.x, p0.y, p0.z },
-				   float3{ 1.0f, 0.0f, 0.0f },
-				   0.0f,
-				   1e-6f,
-				   0.0f,
-				   OptixVisibilityMask(255),
-				   OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-				   0,
-				   0,
-				   0);
+		atomicAdd(launchParams.count.data(), 1);
 	}
+}
 
-	__global__ void __intersection__()
-	{
-		auto p0 = optixGetWorldRayOrigin();
-		auto vIdx0 = optixGetLaunchIndex().x;
-		auto vIdx1 = optixGetPrimitiveIndex();
 
-		if (vIdx1 <= vIdx0)
-			return;
-
-		auto p1 = launchParams.vertices[vIdx1];
-		float3 d = { p1.x - p0.x, p1.y - p0.y, p1.z - p0.z };
-		float len = sqrtf((d.x * d.x) + (d.y * d.y) + (d.z * d.z));
-
-		if (len < launchParams.radius)
-		{
-			atomicAdd(launchParams.count.data(), 1);
-		}
-	}
-
-	__global__ void __miss__()
-	{
-	//	printf("miss\n");
-	}
+__RT_KERNEL__ void __miss__()
+{
+//	printf("miss\n");
 }

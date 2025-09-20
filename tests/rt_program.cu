@@ -25,50 +25,59 @@
 #include <device_launch_parameters.h>
 #include <optix_device.h>
 #include "launch_params.h"
+#include <photon/macros.h>
 
-static __constant__ LaunchParams launchParams;
+__RT_CONSTANT__ LaunchParams launchParams;
 
-extern "C"
+/*********************************************************************************
+*********************************    kernels    **********************************
+*********************************************************************************/
+
+__RT_KERNEL__ void __raygen__()
 {
-	__global__ void __raygen__()
-	{
-		int seed = launchParams.seed;
+	int seed = launchParams.seed;
 
-		printf("seed[%d] = %d\n", optixGetLaunchIndex().x, seed);
-	}
+	printf("seed[%d] = %d\n", optixGetLaunchIndex().x, seed);
+}
 
-	__global__ void __anyhit__()
-	{
 
-	}
+__RT_KERNEL__ void __anyhit__()
+{
 
-	__global__ void __closesthit__()
-	{
+}
 
-	}
 
-	__global__ void __intersection__()
-	{
+__RT_KERNEL__ void __closesthit__()
+{
 
-	}
+}
 
-	__global__ void __direct_callable__()
-	{
 
-	}
+__RT_KERNEL__ void __intersection__()
+{
 
-	__global__ void __continuation_callable__()
-	{
+}
 
-	}
 
-	__global__ void __exception__()
-	{
+__RT_KERNEL__ void __direct_callable__()
+{
 
-	}
+}
 
-	__global__ void __miss__()
-	{
 
-	}
+__RT_KERNEL__ void __continuation_callable__()
+{
+
+}
+
+
+__RT_KERNEL__ void __exception__()
+{
+
+}
+
+
+__RT_KERNEL__ void __miss__()
+{
+
 }

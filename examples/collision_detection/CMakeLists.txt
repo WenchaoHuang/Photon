@@ -44,8 +44,21 @@ set(PTX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/collision_pipeline.cu)
 # Generated PTX headers directory
 set(GENERATED_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/ptx)
 
-# Nucleus include directory
+
+macro(make_cuda_include_flags out_flags includes)
+	set(${out_flags} "")
+	foreach(dir ${${includes}})
+		list(APPEND ${out_flags} -I"${dir}")
+	endforeach()
+endmacro()
+
+# Nucleus and Photon include directories
 get_target_property(NUCLEUS_INCLUDE nucleus INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(PHOTON_INCLUDE photon INTERFACE_INCLUDE_DIRECTORIES)
+
+# Nucleus and Photon include flags
+make_cuda_include_flags(NUCLEUS_INCLUDE_FLAGS NUCLEUS_INCLUDE)
+make_cuda_include_flags(PHOTON_INCLUDE_FLAGS PHOTON_INCLUDE)
 
 # PTX Generation Pipeline
 foreach(PTX_SOURCE ${PTX_SOURCES})
@@ -54,8 +67,8 @@ foreach(PTX_SOURCE ${PTX_SOURCES})
 
     # Compile CUDA file into PTX
     cuda_compile_ptx(${base}_ptx ${PTX_SOURCE} OPTIONS
-        -I ${NUCLEUS_INCLUDE}
-        -I ${OPTIX_INCLUDE}
+        ${NUCLEUS_INCLUDE_FLAGS}
+        ${PHOTON_INCLUDE_FLAGS}
         -std=c++20
     )
 
