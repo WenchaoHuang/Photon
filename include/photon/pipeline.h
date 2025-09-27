@@ -131,13 +131,13 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	pipelineParams - Pointer to the pipeline parameter structure.
 		 *	@param[in]	sbt - Shader Binding Table that defines program associations (raygen, miss, hit, callable, etc.).
 		 *	@param[in]	width - Launch width in threads.
-		 *	@param[in]	height - Launch height in threads.
+		 *	@param[in]	height - Launch height in threads (default = 1).
 		 *	@param[in]	depth - Launch depth in threads (default = 1).
 		 *	@note		This function dispatches ray generation and subsequent OptiX programs across the specified launch dimensions.
 		 *	@note		Multiple launches may be issued in parallel from multiple threads as long as they target different CUDA streams.
 		 *	@warning	The stream and pipeline must belong to the same device context.
 		 */
-		template<typename Type> void launch(ns::Stream & stream, ns::dev::Ptr<const Type> pipelineParams, const OptixShaderBindingTable & sbt, size_t width, size_t height, size_t depth = 1)
+		template<typename Type> void launch(ns::Stream & stream, ns::dev::Ptr<const Type> pipelineParams, const OptixShaderBindingTable & sbt, size_t width, size_t height = 1, size_t depth = 1)
 		{
 			this->doLaunch(stream, pipelineParams.data(), sizeof(Type), sbt, static_cast<unsigned int>(width), static_cast<unsigned int>(height), static_cast<unsigned int>(depth));
 		}
@@ -148,7 +148,6 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Internal implementation of pipeline launch.
 		 *	@note		This is the low-level entry point that forwards the call to the OptiX API with untyped pipeline parameters.
 		 */
-		virtual void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize,
-							  const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth) = 0;
+		virtual void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth) = 0;
 	};
 }

@@ -125,7 +125,7 @@ int main()
 	{
 		ns::ScopedTimer scopedTimer(stream, [&](float us) { timeCost = us; });
 
-		pipeline->launch<LaunchParams>(stream, devLaunchParams, sbt, count, 1);
+		pipeline->launch<LaunchParams>(stream, devLaunchParams, sbt, count);
 	}
 
 	//	Download data
