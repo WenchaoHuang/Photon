@@ -70,7 +70,7 @@ AccelStructBase::AccelStructBase(std::shared_ptr<DeviceContextImpl> deviceContex
 }
 
 
-void AccelStructBase::build(ns::Stream & stream, NsAllocPtr allocator, const std::vector<OptixBuildInput> & buildInputs, OptixAccelBuildOptions buildOptions)
+void AccelStructBase::build(ns::Stream & stream, ns::AllocPtr allocator, const std::vector<OptixBuildInput> & buildInputs, OptixAccelBuildOptions buildOptions)
 {
 	OptixAccelBufferSizes accelBufferSizes = {};
 
@@ -200,7 +200,7 @@ AccelStructBase::~AccelStructBase()
 *************************    AccelStructTriangleImpl    **************************
 *********************************************************************************/
 
-void AccelStructTriangleImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
+void AccelStructTriangleImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
 {
 	m_numSbtRecords = 0;
 	m_geomFlags.resize(buildInputs.size());
@@ -274,7 +274,7 @@ void AccelStructTriangleImpl::build(ns::Stream & stream, NsAllocPtr allocator, n
 ***************************    AccelStructAabbImpl    ****************************
 *********************************************************************************/
 
-void AccelStructAabbImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
+void AccelStructAabbImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
 {
 	m_numSbtRecords = 0;
 	m_geomFlags.resize(buildInputs.size());
@@ -347,7 +347,7 @@ void AccelStructAabbImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::A
 ***************************    AccelStructCurveImpl    ***************************
 *********************************************************************************/
 
-void AccelStructCurveImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
+void AccelStructCurveImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
 {
 	m_buildInputs.resize(buildInputs.size());
 	m_vertBuffers.resize(buildInputs.size());
@@ -401,7 +401,7 @@ void AccelStructCurveImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::
 **************************    AccelStructSphereImpl    ***************************
 *********************************************************************************/
 
-void AccelStructSphereImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
+void AccelStructSphereImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
 {
 	m_numSbtRecords = 0;
 	m_geomFlags.resize(buildInputs.size());
@@ -493,7 +493,7 @@ namespace kernels
 	}
 }
 
-void InstAccelStructImpl::build(ns::Stream & stream, NsAllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
+void InstAccelStructImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate)
 {
 	m_buildInputs.resize(buildInputs.size());
 	m_instances.resize(allocator, buildInputs.size());

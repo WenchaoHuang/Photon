@@ -73,9 +73,9 @@ namespace PHOTON_NAMESPACE
 
 	private:
 
-		NsArray<unsigned char>							m_tempBuffer;
-		NsArray<unsigned char>							m_outputBuffer;
-		NsArray<unsigned char>							m_compactedBuffer;
+		ns::Array<unsigned char>						m_tempBuffer;
+		ns::Array<unsigned char>						m_outputBuffer;
+		ns::Array<unsigned char>						m_compactedBuffer;
 		OptixTraversableHandle							m_hTraversable;
 		OptixAccelBuildOptions							m_buildOptions;
 		std::vector<OptixBuildInput>					m_buildInputs;
@@ -202,8 +202,8 @@ namespace PHOTON_NAMESPACE
 
 	private:
 
-		std::vector<BuildInput>					m_buildInputs;
-		NsArray<ns::dev::Ptr<const Mat4x4>>		m_transforms;
-		NsArray<OptixInstance>					m_instances;
+		std::vector<BuildInput>						m_buildInputs;
+		ns::Array<ns::dev::Ptr<const Mat4x4>>		m_transforms;
+		ns::Array<OptixInstance>					m_instances;
 	};
 }
