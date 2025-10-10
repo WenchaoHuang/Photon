@@ -74,7 +74,7 @@ if (PHOTON_BUILD_SHARED_LIB)
     )
 else()
     # Create the static library
-    add_library(${TARGET_NAME} STATIC ${NUCLEUS_SOURCES})
+    add_library(${TARGET_NAME} STATIC ${PHOTON_SOURCES})
 
     # Export header
     configure_file(
