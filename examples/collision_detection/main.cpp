@@ -120,10 +120,10 @@ int main()
 	sbt.missRecordStrideInBytes = sizeof(pt::EmptyRecord);
 	sbt.missRecordCount = 1;
 
-	float timeCost = 0.0f;
+	double timeCost = 0.0;
 	stream.memsetZero(devCount.data(), devCount.bytes()).sync();
 	{
-		ns::ScopedTimer scopedTimer(stream, [&](float us) { timeCost = us; });
+		ns::ScopedTimer scopedTimer(stream, [&](std::chrono::nanoseconds ns) { timeCost = ns.count() * 1e-3; });
 
 		pipeline->launch<LaunchParams>(stream, devLaunchParams, sbt, count);
 	}
