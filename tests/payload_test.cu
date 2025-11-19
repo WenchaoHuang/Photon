@@ -32,18 +32,18 @@ using RayDirType = pt::Payload<float3, 0, 1, 2>;
 __RT_KERNEL__ void __raygen__()
 {
 	RayDirType rayDir;
-	pt::setPayload<0>(0);
-	pt::setPayload<long long, 0, 1>(0);
-	pt::setPayload(rayDir);
+	pt::set_payload<0>(0);
+	pt::set_payload<long long, 0, 1>(0);
+	pt::set_payload(rayDir);
 }
 
 
 __RT_KERNEL__ void __miss__()
 {
-	pt::setPayload<0>(0);
-	auto p0 = pt::getPayload<0>();
-	auto p1 = pt::getPayload<float, 0>();
-	auto rayDir = pt::getPayload<RayDirType>();
+	pt::set_payload<0>(0);
+	auto p0 = pt::get_payload<0>();
+	auto p1 = pt::get_payload<float, 0>();
+	auto rayDir = pt::get_payload<RayDirType>();
 	rayDir = float3{ 0, 1, 0 };
-	pt::setPayload(rayDir);
+	pt::set_payload(rayDir);
 }
