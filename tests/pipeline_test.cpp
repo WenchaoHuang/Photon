@@ -30,7 +30,7 @@
 #include <photon/device_context.h>
 
 #include "launch_params.h"
-#include "rt_program.ptx.h"
+#include "rt_program.optixir.h"
 
 /*********************************************************************************
 ******************************    pipeline_test    *******************************
@@ -46,7 +46,7 @@ void pipeline_test()
 	assert(context->device() == device);
 
 	auto devProp = context->properties();
-	auto module = context->createModule(rt_program_ptx);
+	auto module = context->createModule(rt_program_optixir);
 
 	auto program0 = module->at("");								//	error: empty function name
 	auto program1 = module->at("xxxxx");						//	error: invalid function name

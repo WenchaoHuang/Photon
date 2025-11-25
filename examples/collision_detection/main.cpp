@@ -33,7 +33,7 @@
 #include <photon/pipeline.h>
 #include <photon/accel_struct.h>
 #include <photon/device_context.h>
-#include "collision_pipeline.ptx.h"
+#include "collision_pipeline.optixir.h"
 #include "launch_params.h"
 
 /*********************************************************************************
@@ -73,7 +73,7 @@ int main()
 	OptixPipelineCompileOptions pipelineCompileOptions = {};
 	pipelineCompileOptions.pipelineLaunchParamsVariableName = "launchParams";
 	pipelineCompileOptions.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS;
-	auto module = deviceContext->createModule(collision_pipeline_ptx, moduleCompileOptions, pipelineCompileOptions);
+	auto module = deviceContext->createModule(collision_pipeline_optixir, moduleCompileOptions, pipelineCompileOptions);
 	auto intersectionProg = module->at("__intersection__");
 	auto raygenProg = module->at("__raygen__");
 	auto missProg = module->at("__miss__");

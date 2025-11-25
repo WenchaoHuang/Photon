@@ -18,89 +18,81 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.18)
+# Enales CUDA_OPTIX_COMPILATION
+cmake_minimum_required(VERSION 3.27)
 
-# Target name
-set(TARGET_NAME collision_detection)
-
-# Find and configure CUDA (required for cuda_compile_ptx and bin2c)
-find_package(CUDA REQUIRED)
+# Target / Object name
+set(TARGET_NAME collision_pipeline)
+set(OBJECT_NAME ${TARGET_NAME}-optix)
 
 # Source files
-file(GLOB TEST_CPP_SOURCES CONFIGURE_DEPENDS
+file(GLOB EXAMPLE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
-file(GLOB TEST_CUDA_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cu"
-)
 
-# Create the executable target
-add_executable(${TARGET_NAME} ${TEST_CPP_SOURCES} ${TEST_CUDA_SOURCES})
+# List of CUDA source files that should be compiled to optix format
+set(OPTIX_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/collision_pipeline.cu")
 
-# List of CUDA source files that should be compiled to PTX format
-set(PTX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/collision_pipeline.cu)
+# Create the executable and object target
+add_executable(${TARGET_NAME} ${EXAMPLE_SOURCES})
+add_library(${OBJECT_NAME} OBJECT ${OPTIX_SOURCES})
+add_dependencies(${TARGET_NAME} ${OBJECT_NAME})
 
-# Generated PTX headers directory
-set(GENERATED_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/ptx)
+# List to track generated header files (populated in the loop below)
+set(GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/optixir")
 
-
-macro(make_cuda_include_flags out_flags includes)
-	set(${out_flags} "")
-	foreach(dir ${${includes}})
-		list(APPEND ${out_flags} -I"${dir}")
-	endforeach()
-endmacro()
-
-# Nucleus and Photon include directories
-get_target_property(NUCLEUS_INCLUDE nucleus INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(PHOTON_INCLUDE photon INTERFACE_INCLUDE_DIRECTORIES)
-
-# Nucleus and Photon include flags
-make_cuda_include_flags(NUCLEUS_INCLUDE_FLAGS NUCLEUS_INCLUDE)
-make_cuda_include_flags(PHOTON_INCLUDE_FLAGS PHOTON_INCLUDE)
-
-# PTX Generation Pipeline
-foreach(PTX_SOURCE ${PTX_SOURCES})
+# Optix Generation Pipeline
+foreach(OPTIX_SOURCE ${OPTIX_SOURCES})
     # Extract the base name (without extension)
-    get_filename_component(base ${PTX_SOURCE} NAME_WE)
-
-    # Compile CUDA file into PTX
-    cuda_compile_ptx(${base}_ptx ${PTX_SOURCE} OPTIONS
-        ${NUCLEUS_INCLUDE_FLAGS}
-        ${PHOTON_INCLUDE_FLAGS}
-        -std=c++20
-    )
+    get_filename_component(base ${OPTIX_SOURCE} NAME_WE)
 
     # Generated header file path
-    set(PTX_HEADER ${GENERATED_HEADERS_DIR}/${base}.ptx.h)
+    set(OPTIXIR_HEADER "${GENERATED_HEADERS_DIR}/${base}.optixir.h")
 
-	# Convert PTX into a C header using bin2c
+	# Convert *.optixir into a C header using bin2c
     add_custom_command(
-        OUTPUT ${PTX_HEADER}
-		COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/bin2c -p 0 -st -c -n ${base}_ptx ${${base}_ptx} > ${PTX_HEADER}
-        DEPENDS ${${base}_ptx}
-        COMMENT "Converting ${${base}_ptx} to ${PTX_HEADER} with bin2c"
+        OUTPUT ${OPTIXIR_HEADER}
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir
+		COMMAND bin2c.exe -st -c -n ${base}_optixir ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir > ${OPTIXIR_HEADER}
+        COMMENT "Converting ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir to ${OPTIXIR_HEADER} with bin2c"
     )
 
-    # Add PTX source and generated *.ptx file to the target
-    target_sources(${TARGET_NAME} PRIVATE ${${base}_ptx})
-    target_sources(${TARGET_NAME} PRIVATE ${PTX_HEADER})
+    # Add generated *.optixir.h file to the target
+    target_sources(${TARGET_NAME} PRIVATE ${OPTIXIR_HEADER})
 
-    # Group PTX file in IDE project views
-    source_group("Generated PTX" FILES ${${base}_ptx})
+    # Group generated files in IDE project views
+    source_group("Generated Files" FILES ${OPTIXIR_HEADER})
 endforeach()
 
+# Ensures `target_link_libraries` works correctly with OBJECT library.
+add_dummy_cpp(${OBJECT_NAME})
+
 # Link directories
-target_link_libraries(${TARGET_NAME} PRIVATE photon nucleus)
+target_link_libraries(${TARGET_NAME} PRIVATE photon)
+target_link_libraries(${OBJECT_NAME} PRIVATE photon)
 
 # Make the generated header directory available for #include
 target_include_directories(${TARGET_NAME} PRIVATE ${GENERATED_HEADERS_DIR})
 
+if(MSVC)
+    # MSVC-specific compiler flags
+    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
+    target_compile_options(${OBJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
+    
+    # For suppressing MSVC IntelliSense errors.
+    add_dummy_cpp(${OBJECT_NAME})
+endif()
+
 # CUDA-Specific Properties
+set_target_properties(${OBJECT_NAME} PROPERTIES
+    CUDA_RESOLVE_DEVICE_SYMBOLS ON
+    CUDA_OPTIX_COMPILATION ON
+    CUDA_ARCHITECTURES "75"
+    FOLDER "Examples"
+)
 set_target_properties(${TARGET_NAME} PROPERTIES
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
-    CUDA_SEPARABLE_COMPILATION ON
     CUDA_ARCHITECTURES "75"
     FOLDER "Examples"
 )
