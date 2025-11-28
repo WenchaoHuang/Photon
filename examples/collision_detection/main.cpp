@@ -86,7 +86,7 @@ int main()
 	ns::Array<pt::EmptyRecord>		devRaygenRecord(allocator, 1);
 	ns::Array<LaunchParams>			devLaunchParams(allocator, 1);
 	ns::Array<ns::float3_16a>		vertPos(allocator, leafPos.size());
-	ns::BufferView1D<pt::Aabb>		aabbBuffer(std::make_shared<ns::Buffer>(allocator, sizeof(pt::Aabb) * leafAabb.size()));
+	ns::Array<pt::Aabb>				aabbBuffer(allocator, leafAabb.size());
 	stream.memcpy(aabbBuffer.data(), leafAabb.data(), leafAabb.size());
 	stream.memcpy(vertPos.data(), leafPos.data(), leafPos.size());
 

@@ -23,8 +23,8 @@
 
 #include "fwd.h"
 #include <nucleus/array_proxy.h>
-#include <nucleus/buffer_view.h>
 #include <nucleus/vector_types.h>
+#include <nucleus/device_pointer.h>
 #include <optix.h>
 
 namespace PHOTON_NAMESPACE
@@ -131,13 +131,13 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with triangle primitive type.
 		struct BuildInput
 		{
-			ns::BufferView1D<const ns::int3_16a>		indexBuffer = nullptr;				//	Optional pointer to array of int triplets, one triplet per triangle.
-			ns::BufferView1D<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory. 
-			ns::BufferView1D<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>					perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int								numIndexTriplets = 0;				//	Size of array in indexBuffer. If zeros, numIndexTriplets = numVertices / 3.
-			unsigned int								numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int								numVertices = 0;					//	Number of vertices in each of buffer in vertexBuffer.
+			dev::Ptr<const ns::int3_16a>		indexBuffer = nullptr;				//	Optional pointer to array of int triplets, one triplet per triangle.
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory. 
+			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
+			unsigned int						numIndexTriplets = 0;				//	Size of array in indexBuffer. If zeros, numIndexTriplets = numVertices / 3.
+			unsigned int						numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
+			unsigned int						numVertices = 0;					//	Number of vertices in each of buffer in vertexBuffer.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -162,11 +162,11 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with aabb primitive type.
 		struct BuildInput
 		{
-			ns::BufferView1D<const Aabb>			aabbBuffer = nullptr;				//	Pointer to AABBs on device memory.
-			ns::BufferView1D<const uint32_t>		sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>				perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int							numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int							numPrimitives = 0;					//	Number of primitives.
+			dev::Ptr<const Aabb>			aabbBuffer = nullptr;				//	Pointer to AABBs on device memory.
+			dev::Ptr<const uint32_t>		sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>		perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
+			unsigned int					numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
+			unsigned int					numPrimitives = 0;					//	Number of primitives.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -209,13 +209,13 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with curve primitive type.
 		struct BuildInput
 		{
-			CurveType									curveType = RoundLinear;			
-			ns::BufferView1D<const ns::float3_16a>		vertexBuffer = nullptr;			//	Pointer to array of positons on device memory.
-			ns::BufferView1D<const uint32_t>			indexBuffer = nullptr;			//	These define a single segment. Size of array is numPrimitives.
-			ns::BufferView1D<const float>				widthBuffer = nullptr;			//	Specifying the curve width (radius) corresponding to each vertex.
-			unsigned int								numPrimitives = 0;				//	Number of primitives.
-			unsigned int								numVertices = 0;				//	Number of vertices in each buffer in vertexBuffers.
-			GeomFlags									flags = None;					//	Combination of GeomFlags describing the primitive behavior.
+			CurveType							curveType = RoundLinear;			
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;			//	Pointer to array of positons on device memory.
+			dev::Ptr<const uint32_t>			indexBuffer = nullptr;			//	These define a single segment. Size of array is numPrimitives.
+			dev::Ptr<const float>				widthBuffer = nullptr;			//	Specifying the curve width (radius) corresponding to each vertex.
+			unsigned int						numPrimitives = 0;				//	Number of primitives.
+			unsigned int						numVertices = 0;				//	Number of vertices in each buffer in vertexBuffers.
+			GeomFlags							flags = None;					//	Combination of GeomFlags describing the primitive behavior.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -243,13 +243,13 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with sphere primitive type.
 		struct BuildInput
 		{
-			ns::BufferView1D<const float>				radiusBuffer = nullptr;				//	Parallel to vertexBuffer: specifying the sphere radius corresponding to each vertex.
-			ns::BufferView1D<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory.
-			ns::BufferView1D<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>					perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int								numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int								numVertices = 0;					//	Number of vertices in each buffer in vertexBuffers.
-			bool										singleRadius = false;				//	Boolean value indicating whether a single radius per radius buffer is used, or the number of radii in radiusBuffers equals numVertices.
+			dev::Ptr<const float>				radiusBuffer = nullptr;				//	Parallel to vertexBuffer: specifying the sphere radius corresponding to each vertex.
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory.
+			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
+			unsigned int						numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
+			unsigned int						numVertices = 0;					//	Number of vertices in each buffer in vertexBuffers.
+			bool								singleRadius = false;				//	Boolean value indicating whether a single radius per radius buffer is used, or the number of radii in radiusBuffers equals numVertices.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -289,7 +289,7 @@ namespace PHOTON_NAMESPACE
 		struct BuildInput
 		{
 			std::shared_ptr<GeomAccelStruct>	geomAccelStruct = nullptr;		//	Set with an OptixTraversableHandle.
-			ns::BufferView1D<const Mat4x4>		transform = nullptr;			//	Pointer to the affine object-to-world transformation matrix in row-major layout.
+			dev::Ptr<const Mat4x4>				transform = nullptr;			//	Pointer to the affine object-to-world transformation matrix in row-major layout.
 			unsigned int						visibilityMask = 255;			//	Visibility mask. If rayMask & instanceMask == 0 the instance is culled.
 			unsigned int						instanceId = 0;					//	Application supplied ID. The maximal ID can be queried using OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCE_ID.
 			unsigned int						sbtOffset = 0;					//	SBT record offset. In a traversable graph with multiple levels of IAS objects, offsets are summed together.
