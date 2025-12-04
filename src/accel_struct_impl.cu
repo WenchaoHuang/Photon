@@ -82,24 +82,24 @@ void AccelStructBase::build(ns::Stream & stream, ns::AllocPtr allocator, const s
 	{
 		m_outputBuffer.resize(allocator, accelBufferSizes.outputSizeInBytes);
 
-		m_tempBuffer.resize(allocator, NS_MAX(accelBufferSizes.tempSizeInBytes, accelBufferSizes.tempUpdateSizeInBytes) + 15);		//!	last aligned 8-bytes for storing compacted size.
+		//!	last aligned 8-bytes for storing compacted size.
+		m_tempBuffer.resize(allocator, ns::align_up(NS_MAX(accelBufferSizes.tempSizeInBytes, accelBufferSizes.tempUpdateSizeInBytes), alignof(uint64_t)) + sizeof(uint64_t));
 
 		if (buildOptions.buildFlags & OPTIX_BUILD_FLAG_ALLOW_COMPACTION)
 		{
 			OptixAccelEmitDesc			emittedProp = {};
 			OptixTraversableHandle		outputHandle = 0;
 			emittedProp.type			= OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
-			emittedProp.result			= CUdeviceptr(m_tempBuffer.data() + ((m_tempBuffer.size() - 15 + 7) / 8) * 8);
+			emittedProp.result			= CUdeviceptr(m_tempBuffer.data() + m_tempBuffer.size() - sizeof(uint64_t));
 
 			err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &buildOptions, buildInputs.data(), (uint32_t)buildInputs.size(),
-									  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &outputHandle, &emittedProp, 1);
+								  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &outputHandle, &emittedProp, 1);
 
 			if (err == OPTIX_SUCCESS)
 			{
 				uint64_t compactedSize = 0;
 
-				stream.memcpy<void>(&compactedSize, (const void*)emittedProp.result, sizeof(uint64_t));
-				stream.sync();
+				stream.memcpy<uint64_t>(&compactedSize, (const uint64_t*)emittedProp.result, 1).sync();
 
 				m_compactedBuffer.resize(allocator, compactedSize);
 
@@ -109,7 +109,7 @@ void AccelStructBase::build(ns::Stream & stream, ns::AllocPtr allocator, const s
 		else
 		{
 			err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &buildOptions, buildInputs.data(), (uint32_t)buildInputs.size(),
-									  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &m_hTraversable, nullptr, 0);
+								  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &m_hTraversable, nullptr, 0);
 		}
 	}
 
@@ -134,7 +134,7 @@ void AccelStructBase::rebuild(ns::Stream & stream)
 		m_buildOptions.operation = OPTIX_BUILD_OPERATION_BUILD;
 
 		OptixResult err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &m_buildOptions, m_buildInputs.data(), (uint32_t)m_buildInputs.size(),
-											  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &outputHandle, nullptr, 0);
+										  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &outputHandle, nullptr, 0);
 
 		if (err == OPTIX_SUCCESS)
 		{
@@ -169,12 +169,12 @@ void AccelStructBase::refit(ns::Stream & stream)
 		if (this->allowCompaction())
 		{
 			err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &m_buildOptions, m_buildInputs.data(), (uint32_t)m_buildInputs.size(),
-									  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_compactedBuffer.data(), m_compactedBuffer.bytes(), &m_hTraversable, nullptr, 0);
+								  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_compactedBuffer.data(), m_compactedBuffer.bytes(), &m_hTraversable, nullptr, 0);
 		}
 		else
 		{
 			err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &m_buildOptions, m_buildInputs.data(), (uint32_t)m_buildInputs.size(),
-									  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &m_hTraversable, nullptr, 0);
+								  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), (CUdeviceptr)m_outputBuffer.data(), m_outputBuffer.bytes(), &m_hTraversable, nullptr, 0);
 		}
 
 		if (err != OPTIX_SUCCESS)
