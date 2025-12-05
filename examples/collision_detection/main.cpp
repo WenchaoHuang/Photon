@@ -95,7 +95,7 @@ int main()
 	pt::AccelStructAabb::BuildInput buildInput;
 	buildInput.aabbBuffer = aabbBuffer;
 	buildInput.numPrimitives = static_cast<unsigned int>(count);
-	accelStruct->build(stream, allocator, buildInput, true, false);
+	accelStruct->build(stream, allocator, buildInput, 200, true, false);
 
 	//	launch parameters
 	LaunchParams hostLaunchParams = {};
