@@ -63,12 +63,23 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		void build(ns::Stream & stream, ns::AllocPtr allocator, const std::vector<OptixBuildInput> & buildInputs, OptixAccelBuildOptions buildOptions);
+		void build(ns::Stream & stream, ns::AllocPtr allocator, const std::vector<OptixBuildInput> & buildInputs, OptixAccelBuildOptions buildOptions, size_t headerSize);
 
 		bool allowCompaction() const { return (m_buildOptions.buildFlags & OPTIX_BUILD_FLAG_ALLOW_COMPACTION) != 0; }
 
+		dev::Ptr<unsigned char> gasHeaderBuffer()
+		{
+			if ((m_headerSize != 0) && this->allowCompaction())
+				return dev::Ptr<unsigned char>(m_compactedBuffer.data(), m_headerSize);
+			else if (m_headerSize != 0)
+				return dev::Ptr<unsigned char>(m_outputBuffer.data(), m_headerSize);
+			else
+				return dev::Ptr<unsigned char>(nullptr);
+		}
+
 	protected:
 
+		size_t											m_headerSize;
 		unsigned int									m_numSbtRecords;
 
 	private:
@@ -95,9 +106,13 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) override;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) override;
 
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
+
+		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
 
@@ -119,9 +134,13 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) override;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) override;
 		
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
+
+		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
 
@@ -143,9 +162,13 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) override;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) override;
 
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
+
+		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
 
@@ -167,9 +190,13 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) override;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) override;
 
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
+
+		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
 

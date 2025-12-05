@@ -86,37 +86,68 @@ namespace PHOTON_NAMESPACE
 	***************************    GeomAccelStruct    ****************************
 	*****************************************************************************/
 
-	//	An abstract class representing an geometry acceleration structure.
+	//!	An abstract class representing an geometry acceleration structure.
 	class GeomAccelStruct : virtual public AccelStruct
 	{
 
 	public:
 
-		//	Enum defining different types of primitives supported by the acceleration structure.
+		//!	Enum defining different types of primitives supported by the acceleration structure.
 		enum PrimitiveType
 		{
-			Triangle,		//	Geometry acceleration structure containing built-in triangles.
-			Sphere,			//	Geometry acceleration structure containing built-in spheres.
-			Curve,			//	Geometry acceleration structure containing built-in curve primitives.
-			AABB,			//	Geometry acceleration structure containing custom primitives.
+			Triangle,		//!	Geometry acceleration structure containing built-in triangles.
+			Sphere,			//!	Geometry acceleration structure containing built-in spheres.
+			Curve,			//!	Geometry acceleration structure containing built-in curve primitives.
+			AABB,			//!	Geometry acceleration structure containing custom primitives.
 		};
 
-		//	Geometry flags describing the primitive behavior.
+		//!	Geometry flags describing the primitive behavior.
 		enum GeomFlags
 		{
-			None							= 0,			//	No flags set.
-			DisableAnyhit					= 1u << 0,		//	Disables the invocation of the anyhit program. Can be overridden by OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT and OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
-			RequireSingleAnyhitCall			= 1u << 1,		//	If set, an intersection with the primitive will trigger one and only one invocation of the anyhit program. Otherwise, the anyhit program may be invoked more than once.
+			None							= 0,			//!	No flags set.
+			DisableAnyhit					= 1u << 0,		//!	Disables the invocation of the anyhit program. Can be overridden by OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT and OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
+			RequireSingleAnyhitCall			= 1u << 1,		//!	If set, an intersection with the primitive will trigger one and only one invocation of the anyhit program. Otherwise, the anyhit program may be invoked more than once.
 		#if OPTIX_VERSION >= 70500
-			DisableTriangleFaceCulling		= 1u << 2,		//	Prevent triangles from getting culled due to their orientation. Effectively ignores ray flags OPTIX_RAY_FLAG_CULL_BACK_FACING_TRIANGLES and OPTIX_RAY_FLAG_CULL_FRONT_FACING_TRIANGLES.
+			DisableTriangleFaceCulling		= 1u << 2,		//!	Prevent triangles from getting culled due to their orientation. Effectively ignores ray flags OPTIX_RAY_FLAG_CULL_BACK_FACING_TRIANGLES and OPTIX_RAY_FLAG_CULL_FRONT_FACING_TRIANGLES.
 		#endif
 		};
 
-		//	Function to retrieve the subtype of the acceleration structure, indicating it as a geometry type.
+		//!	Function to retrieve the subtype of the acceleration structure, indicating it as a geometry type.
 		virtual SubType subType() const final { return SubType::Geometry; }
 
-		//	Virtual function to retrieve the primitive type of the acceleration structure.
+		//!	Virtual function to retrieve the primitive type of the acceleration structure.
 		virtual PrimitiveType primitiveType() const = 0;
+
+	public:
+
+		/**
+		 *	@brief		Device pointer to the header buffer of a GAS (Geometry Acceleration Structure).
+		 * 
+		 *	@details	This returns a pointer to the metadata header associated with the GAS.
+		 *				The header region is placed before the OptiX acceleration data and is designed
+		 *				for user-defined information such as primitive offsets, material indices,
+		 *				or any custom per-GAS data layout.
+		 *
+		 *	@details	Memory layout example (including alignment considerations):
+		 *				|------ user header buffer ------|--------- GAS output buffer --------- ... |
+		 *				       ^ returned pointer                   ^BVH and geometry data
+		 *
+		 *	@note		The size of the header region will be aligned up to `OPTIX_ACCEL_BUFFER_BYTE_ALIGNMENT`.
+		 *				That means the actual offset to the GAS acceleration data may be larger than the
+		 *				raw header struct size and should be computed accordingly.
+		 * 
+		 *	@note		This header is **intended to be accessed and interpreted by the application**,
+		 *				and its structure is defined by the user. It can be used directly on device-side
+		 *				kernels without copying back to host.
+		 *
+		 *	@example	auto geoBuffer = reinterpret_cast<const GeoBuffer*>(optixGetGASPointerFromHandle(optixGetGASTraversableHandle()) - headerSizeInBytes);
+		 *	@note		API `optixGetGASPointerFromHandle` requires `OPTIX_VERSION >= 8.1.0`.
+		 *
+		 */
+		virtual dev::Ptr<unsigned char> headerBuffer() = 0;
+
+		//!	Virtual function to retrieve the size of header in bytes.
+		virtual size_t headerSize() const = 0;
 	};
 
 	/*****************************************************************************
@@ -147,7 +178,7 @@ namespace PHOTON_NAMESPACE
 		virtual PrimitiveType primitiveType() const final { return PrimitiveType::Triangle; }
 
 		//	Abstract function to build the acceleration structure from input triangles.
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) = 0;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) = 0;
 	};
 
 	/*****************************************************************************
@@ -176,7 +207,7 @@ namespace PHOTON_NAMESPACE
 		virtual PrimitiveType primitiveType() const final { return PrimitiveType::AABB; }
 
 		//	Abstract function to build the acceleration structure from input AABBs.
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) = 0;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) = 0;
 	};
 
 	/*****************************************************************************
@@ -225,7 +256,7 @@ namespace PHOTON_NAMESPACE
 		virtual PrimitiveType primitiveType() const final { return PrimitiveType::Curve; }
 
 		//	Abstract function to build the acceleration structure from input curves.
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) = 0;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) = 0;
 	};
 
 	/*****************************************************************************
@@ -259,7 +290,7 @@ namespace PHOTON_NAMESPACE
 		virtual PrimitiveType primitiveType() const final { return PrimitiveType::Sphere; }
 
 		//	Abstract function to build the acceleration structure from input spheres.
-		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, bool preferFastTrace, bool allowUpdate) = 0;
+		virtual void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<BuildInput> buildInputs, size_t headerSize, bool preferFastTrace, bool allowUpdate) = 0;
 	};
 
 	/*****************************************************************************
