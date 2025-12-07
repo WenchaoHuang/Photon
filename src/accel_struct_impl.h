@@ -49,8 +49,6 @@ namespace PHOTON_NAMESPACE
 
 		virtual bool empty() const override { return m_hTraversable == 0; }
 
-		virtual unsigned int numSbtRecords() const override { return m_numSbtRecords; }
-
 		virtual std::shared_ptr<class DeviceContext> deviceContext() const override { return m_deviceContext; }
 
 		virtual bool allowUpdate() const override { return (m_buildOptions.buildFlags & OPTIX_BUILD_FLAG_ALLOW_UPDATE) != 0; }
@@ -112,6 +110,8 @@ namespace PHOTON_NAMESPACE
 
 		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
 
+		virtual unsigned int numSbtRecords() const override { return m_numSbtRecords; }
+
 		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
@@ -139,6 +139,8 @@ namespace PHOTON_NAMESPACE
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
 
 		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual unsigned int numSbtRecords() const override { return m_numSbtRecords; }
 
 		virtual size_t headerSize() const override { return m_headerSize; }
 
@@ -168,6 +170,8 @@ namespace PHOTON_NAMESPACE
 
 		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
 
+		virtual unsigned int numSbtRecords() const override { return m_numSbtRecords; }
+
 		virtual size_t headerSize() const override { return m_headerSize; }
 
 	private:
@@ -195,6 +199,8 @@ namespace PHOTON_NAMESPACE
 		virtual const std::vector<BuildInput> & buildInputs() const override { return m_buildInputs; }
 
 		virtual dev::Ptr<unsigned char> headerBuffer() override { return this->gasHeaderBuffer(); }
+
+		virtual unsigned int numSbtRecords() const override { return m_numSbtRecords; }
 
 		virtual size_t headerSize() const override { return m_headerSize; }
 

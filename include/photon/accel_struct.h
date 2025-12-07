@@ -63,9 +63,6 @@ namespace PHOTON_NAMESPACE
 		//	Pure virtual function to retrieve the subtype of the acceleration structure.
 		virtual SubType subType() const = 0;
 
-		//	Pure virtual function to retrieve the total number of SbtRecords.
-		virtual unsigned int numSbtRecords() const = 0;
-
 		//	Pure virtual function to retrieve the handle of Optix acceleration structure.
 		virtual OptixTraversableHandle handle() const = 0;
 
@@ -117,6 +114,9 @@ namespace PHOTON_NAMESPACE
 
 		//!	Virtual function to retrieve the primitive type of the acceleration structure.
 		virtual PrimitiveType primitiveType() const = 0;
+
+		//	Pure virtual function to retrieve the total number of SbtRecords.
+		virtual unsigned int numSbtRecords() const = 0;
 
 	public:
 
