@@ -53,7 +53,7 @@ static_assert(static_cast<int>(AccelStructCurve::CurveType::FlatQuadraticBSpline
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::None)								== OPTIX_INSTANCE_FLAG_NONE);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableAnyhit)						== OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::EnforceAnyhit)						== OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT);
-static_assert(static_cast<int>(InstAccelStruct::InstFlags::eFlagFlipTriangleFacing)				== OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING);
+static_assert(static_cast<int>(InstAccelStruct::InstFlags::FlipTriangleFacing)					== OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING);
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableTriangleFaceCulling)			== OPTIX_INSTANCE_FLAG_DISABLE_TRIANGLE_FACE_CULLING);
 #if OPTIX_VERSION >= 70600
 static_assert(static_cast<int>(InstAccelStruct::InstFlags::DisableOpacityMicromaps)				== OPTIX_INSTANCE_FLAG_DISABLE_OPACITY_MICROMAPS);
