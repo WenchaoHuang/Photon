@@ -162,13 +162,14 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with triangle primitive type.
 		struct BuildInput
 		{
-			dev::Ptr<const ns::int3_16a>		indexBuffer = nullptr;				//	Optional pointer to array of int triplets, one triplet per triangle.
-			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory. 
-			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int						numIndexTriplets = 0;				//	Size of array in indexBuffer. If zeros, numIndexTriplets = numVertices / 3.
-			unsigned int						numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int						numVertices = 0;					//	Number of vertices in each of buffer in vertexBuffer.
+			dev::Ptr<const ns::int3_16a>		indexBuffer = nullptr;				//!	Optional pointer to array of int triplets, one triplet per triangle.
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//!	Pointer to array of positons on device memory. 
+			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//!	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//!	Array of flags, size must match numSbtRecords. Passing nullptr will fill with `GeomFlags::eNone`.
+			unsigned int						primitiveIndexOffset = 0;			//!	Primitive index bias, applied in `optixGetPrimitiveIndex()`.
+			unsigned int						numIndexTriplets = 0;				//!	Size of array in indexBuffer. If zeros, numIndexTriplets = numVertices / 3.
+			unsigned int						numSbtRecords = 1;					//!	Number of sbt records available to the sbt index offset override.
+			unsigned int						numVertices = 0;					//!	Number of vertices in each of buffer in vertexBuffer.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -193,11 +194,12 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with aabb primitive type.
 		struct BuildInput
 		{
-			dev::Ptr<const Aabb>			aabbBuffer = nullptr;				//	Pointer to AABBs on device memory.
-			dev::Ptr<const uint32_t>		sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>		perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int					numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int					numPrimitives = 0;					//	Number of primitives.
+			dev::Ptr<const Aabb>			aabbBuffer = nullptr;				//!	Pointer to AABBs on device memory.
+			dev::Ptr<const uint32_t>		sbtIndexOffsetBuffer = nullptr;		//!	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>		perSbtRecordFlags = nullptr;		//!	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
+			unsigned int					primitiveIndexOffset = 0;			//!	Primitive index bias, applied in `optixGetPrimitiveIndex()`.	
+			unsigned int					numSbtRecords = 1;					//!	Number of sbt records available to the sbt index offset override.
+			unsigned int					numPrimitives = 0;					//!	Number of primitives.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -241,12 +243,13 @@ namespace PHOTON_NAMESPACE
 		struct BuildInput
 		{
 			CurveType							curveType = RoundLinear;			
-			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;			//	Pointer to array of positons on device memory.
-			dev::Ptr<const uint32_t>			indexBuffer = nullptr;			//	These define a single segment. Size of array is numPrimitives.
-			dev::Ptr<const float>				widthBuffer = nullptr;			//	Specifying the curve width (radius) corresponding to each vertex.
-			unsigned int						numPrimitives = 0;				//	Number of primitives.
-			unsigned int						numVertices = 0;				//	Number of vertices in each buffer in vertexBuffers.
-			GeomFlags							flags = None;					//	Combination of GeomFlags describing the primitive behavior.
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;			//!	Pointer to array of positons on device memory.
+			dev::Ptr<const uint32_t>			indexBuffer = nullptr;			//!	These define a single segment. Size of array is numPrimitives.
+			dev::Ptr<const float>				widthBuffer = nullptr;			//!	Specifying the curve width (radius) corresponding to each vertex.
+			unsigned int						primitiveIndexOffset = 0;		//!	Primitive index bias, applied in `optixGetPrimitiveIndex()`.
+			unsigned int						numPrimitives = 0;				//!	Number of primitives.
+			unsigned int						numVertices = 0;				//!	Number of vertices in each buffer in vertexBuffers.
+			GeomFlags							flags = None;					//!	Combination of GeomFlags describing the primitive behavior.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  
@@ -274,13 +277,14 @@ namespace PHOTON_NAMESPACE
 		//	Build input for GAS with sphere primitive type.
 		struct BuildInput
 		{
-			dev::Ptr<const float>				radiusBuffer = nullptr;				//	Parallel to vertexBuffer: specifying the sphere radius corresponding to each vertex.
-			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//	Pointer to array of positons on device memory.
-			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
-			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
-			unsigned int						numSbtRecords = 1;					//	Number of sbt records available to the sbt index offset override.
-			unsigned int						numVertices = 0;					//	Number of vertices in each buffer in vertexBuffers.
-			bool								singleRadius = false;				//	Boolean value indicating whether a single radius per radius buffer is used, or the number of radii in radiusBuffers equals numVertices.
+			dev::Ptr<const float>				radiusBuffer = nullptr;				//!	Parallel to vertexBuffer: specifying the sphere radius corresponding to each vertex.
+			dev::Ptr<const ns::float3_16a>		vertexBuffer = nullptr;				//!	Pointer to array of positons on device memory.
+			dev::Ptr<const uint32_t>			sbtIndexOffsetBuffer = nullptr;		//!	Device pointer to per-primitive local sbt index offset buffer. May be nullptr.
+			ns::ArrayProxy<GeomFlags>			perSbtRecordFlags = nullptr;		//!	Array of flags, size must match numSbtRecords. Passing nullptr will fill with GeomFlags::eNone.
+			unsigned int						primitiveIndexOffset = 0;			//!	Primitive index bias, applied in `optixGetPrimitiveIndex()`.
+			unsigned int						numSbtRecords = 1;					//!	Number of sbt records available to the sbt index offset override.
+			unsigned int						numVertices = 0;					//!	Number of vertices in each buffer in vertexBuffers.
+			bool								singleRadius = false;				//!	Boolean value indicating whether a single radius per radius buffer is used, or the number of radii in radiusBuffers equals numVertices.
 		};
 
 		//	Returns a constant reference to a vector of BuildInput structures,  

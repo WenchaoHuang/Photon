@@ -263,7 +263,7 @@ void AccelStructTriangleImpl::build(ns::Stream & stream, ns::AllocPtr allocator,
 		optixBuildInputs[i].triangleArray.indexStrideInBytes				= useInexBuffer ? sizeof(ns::int3_16a) : 0;
 		optixBuildInputs[i].triangleArray.preTransform						= NULL;
 		optixBuildInputs[i].triangleArray.numSbtRecords						= buildInputs[i].numSbtRecords;
-		optixBuildInputs[i].triangleArray.primitiveIndexOffset				= 0;
+		optixBuildInputs[i].triangleArray.primitiveIndexOffset				= buildInputs[i].primitiveIndexOffset;
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetBuffer				= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetSizeInBytes			= sizeof(uint32_t);
 		optixBuildInputs[i].triangleArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
@@ -331,7 +331,7 @@ void AccelStructAabbImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns:
 		optixBuildInputs[i].customPrimitiveArray.strideInBytes						= sizeof(Aabb);
 		optixBuildInputs[i].customPrimitiveArray.numPrimitives						= buildInputs[i].numPrimitives;
 		optixBuildInputs[i].customPrimitiveArray.numSbtRecords						= buildInputs[i].numSbtRecords;
-		optixBuildInputs[i].customPrimitiveArray.primitiveIndexOffset				= 0;
+		optixBuildInputs[i].customPrimitiveArray.primitiveIndexOffset				= buildInputs[i].primitiveIndexOffset;
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetBuffer				= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetSizeInBytes			= sizeof(uint32_t);
 		optixBuildInputs[i].customPrimitiveArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
@@ -341,7 +341,7 @@ void AccelStructAabbImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns:
 		optixBuildInputs[i].aabbArray.strideInBytes									= sizeof(Aabb);
 		optixBuildInputs[i].aabbArray.numPrimitives									= buildInputs[i].numPrimitives;
 		optixBuildInputs[i].aabbArray.numSbtRecords									= buildInputs[i].numSbtRecords;
-		optixBuildInputs[i].aabbArray.primitiveIndexOffset							= 0;
+		optixBuildInputs[i].aabbArray.primitiveIndexOffset							= buildInputs[i].primitiveIndexOffset;
 		optixBuildInputs[i].aabbArray.sbtIndexOffsetBuffer							= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].aabbArray.sbtIndexOffsetSizeInBytes						= sizeof(uint32_t);
 		optixBuildInputs[i].aabbArray.sbtIndexOffsetStrideInBytes					= sizeof(uint32_t);
@@ -390,6 +390,7 @@ void AccelStructCurveImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns
 		optixBuildInputs[i].curveArray.curveType				= static_cast<OptixPrimitiveType>(buildInputs[i].curveType);
 		optixBuildInputs[i].curveArray.numVertices				= buildInputs[i].numVertices;
 		optixBuildInputs[i].curveArray.numPrimitives			= buildInputs[i].numPrimitives;
+		optixBuildInputs[i].curveArray.primitiveIndexOffset		= buildInputs[i].primitiveIndexOffset;
 		optixBuildInputs[i].curveArray.vertexBuffers			= &m_vertBuffers[i];
 		optixBuildInputs[i].curveArray.vertexStrideInBytes		= sizeof(ns::float3_16a);
 		optixBuildInputs[i].curveArray.indexBuffer				= (CUdeviceptr)buildInputs[i].indexBuffer.data();
@@ -398,7 +399,6 @@ void AccelStructCurveImpl::build(ns::Stream & stream, ns::AllocPtr allocator, ns
 		optixBuildInputs[i].curveArray.widthStrideInBytes		= sizeof(float);
 		optixBuildInputs[i].curveArray.normalBuffers			= nullptr;
 		optixBuildInputs[i].curveArray.normalStrideInBytes		= 0;
-		optixBuildInputs[i].curveArray.primitiveIndexOffset		= 0;
 	#endif
 	}
 
@@ -462,7 +462,7 @@ void AccelStructSphereImpl::build(ns::Stream & stream, ns::AllocPtr allocator, n
 		optixBuildInputs[i].sphereArray.radiusStrideInBytes				= sizeof(float);
 		optixBuildInputs[i].sphereArray.singleRadius					= buildInputs[i].singleRadius;
 		optixBuildInputs[i].sphereArray.numSbtRecords					= buildInputs[i].numSbtRecords;
-		optixBuildInputs[i].sphereArray.primitiveIndexOffset			= 0;
+		optixBuildInputs[i].sphereArray.primitiveIndexOffset			= buildInputs[i].primitiveIndexOffset;
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetBuffer			= (CUdeviceptr)buildInputs[i].sbtIndexOffsetBuffer.data();
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetSizeInBytes		= sizeof(uint32_t);
 		optixBuildInputs[i].sphereArray.sbtIndexOffsetStrideInBytes		= sizeof(uint32_t);
