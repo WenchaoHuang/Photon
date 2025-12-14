@@ -134,43 +134,6 @@ std::shared_ptr<Module> DeviceContext::createModule(const unsigned char * ptxStr
 }
 
 
-std::unique_ptr<Pipeline> DeviceContext::createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
-														const OptixPipelineCompileOptions & pipelineCompileOptions,
-														const OptixPipelineLinkOptions & pipelineLinkOptions)
-{
-	OptixPipeline hPipeline = nullptr;
-
-	std::vector<OptixProgramGroup>		programGroups(programs.size());
-
-	for (size_t i = 0; i < programGroups.size(); i++)
-	{
-		auto progImpl = std::dynamic_pointer_cast<ProgramImpl>(programs[i]);
-
-		if (progImpl == nullptr)
-		{
-			NS_ERROR_LOG("Invalid program!");
-
-			return nullptr;
-		}
-		else
-		{
-			programGroups[i] = progImpl->handle();
-		}
-	}
-
-	OptixResult err = optixPipelineCreate(m_hContext, &pipelineCompileOptions, &pipelineLinkOptions, programGroups.data(), programs.size(), nullptr, nullptr, &hPipeline);
-
-	if (err != OPTIX_SUCCESS)
-	{
-		NS_ERROR_LOG("%s.", optixGetErrorString(err));
-
-		throw err;
-	}
-
-	return std::make_unique<PipelineImpl>(this->shared_from_this(), hPipeline);
-}
-
-
 std::unique_ptr<InstAccelStruct> DeviceContext::createInstAccelStruct()
 {
 	return std::make_unique<InstAccelStructImpl>(this->shared_from_this());

@@ -22,7 +22,6 @@
 #pragma once
 
 #include "fwd.h"
-#include <nucleus/array_proxy.h>
 #include <optix.h>
 
 namespace PHOTON_NAMESPACE
@@ -33,7 +32,7 @@ namespace PHOTON_NAMESPACE
 
 	struct DeviceProp
 	{
-		//	Optix 7.0.0
+		//!	Optix 7.0.0
 		unsigned int	version;							//!	The RT core version supported by the device (0 for no support, 10 for version 1.0).
 		unsigned int	clusterAccel;						//!	Flag specifying support for cluster acceleration structure builds.
 		unsigned int	maxSbtOffset;						//!	The maximum value for OptixInstance::sbtOffset.
@@ -44,9 +43,9 @@ namespace PHOTON_NAMESPACE
 		unsigned int	maxSbtRecordsPerGAS;				//!	The maximum number of instances that can be added to a single Instance Acceleration Structure (IAS).
 		unsigned int	maxTraversableGraphDepth;			//!	Maximum value to pass into optixPipelineSetStackSize.
 		unsigned int	numBitsInstanceVisiblityMask;		//!	The number of bits available for the OptixInstance::visibilityMask.
-		//	Optix 8.1.0
+		//!	Optix 8.1.0
 		unsigned int	shaderExecutionReordering;			//!	Flag specifying capabilities of the optixReorder() device function.
-		//	Optix 9.0.0
+		//!	Optix 9.0.0
 		unsigned int	cooperativeVector;					//!	Flag specifying whether cooperative vector support is enabled for this device.
 		unsigned int	maxClusterVertices;					//!	The maximum unique vertices per cluster in a cluster acceleration structure builds.
 		unsigned int	maxClusterTriangles;				//!	The maximum triangles per cluster in a cluster acceleration structure builds.
@@ -116,11 +115,6 @@ namespace PHOTON_NAMESPACE
 		{
 			return this->createModule(ptx, ptxSize, moduleCompileOptions, pipelineCompileOptions);
 		}
-
-		//!	@brief		Create a pipeline.
-		PHOTON_API std::unique_ptr<Pipeline> createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
-															const OptixPipelineCompileOptions & pipelineCompileOptions = OptixPipelineCompileOptions{},
-															const OptixPipelineLinkOptions & pipelineLinkOptions = OptixPipelineLinkOptions{});
 
 		//!	@brief		Create accel structs.
 		PHOTON_API std::unique_ptr<InstAccelStruct> createInstAccelStruct();

@@ -236,18 +236,43 @@ ProgramImpl::~ProgramImpl()
 
 
 /*********************************************************************************
-*******************************    ProgramImpl    ********************************
+*********************************    Pipeline    *********************************
 *********************************************************************************/
 
-PipelineImpl::PipelineImpl(std::shared_ptr<DeviceContext> deviceContext, OptixPipeline hPipeline)
-	: m_deviceContext(deviceContext), m_hPipeline(hPipeline)
+Pipeline::Pipeline(SharedContext context, ns::ArrayProxy<std::shared_ptr<Program>> programs,
+				   const OptixPipelineCompileOptions & pipelineCompileOptions, const OptixPipelineLinkOptions & pipelineLinkOptions)
+	: m_context(context), m_hPipeline(nullptr)
 {
+	std::vector<OptixProgramGroup> programGroups(programs.size());
 
+	for (size_t i = 0; i < programGroups.size(); i++)
+	{
+		auto progImpl = std::dynamic_pointer_cast<ProgramImpl>(programs[i]);
+
+		if (progImpl == nullptr)
+		{
+			NS_ERROR_LOG("Invalid program!");
+
+			return;
+		}
+		else
+		{
+			programGroups[i] = progImpl->handle();
+		}
+	}
+
+	OptixResult err = optixPipelineCreate(context->handle(), &pipelineCompileOptions, &pipelineLinkOptions, programGroups.data(), programs.size(), nullptr, nullptr, &m_hPipeline);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		throw err;
+	}
 }
 
 
-void PipelineImpl::doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize,
-							const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth)
+void Pipeline::doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth)
 {
 	OptixResult err = optixLaunch(m_hPipeline, stream.handle(), CUdeviceptr(pipelineParams), pipelineParamsSize, &sbt, width, height, depth);
 
@@ -260,7 +285,7 @@ void PipelineImpl::doLaunch(ns::Stream & stream, const void * pipelineParams, si
 }
 
 
-PipelineImpl::~PipelineImpl()
+Pipeline::~Pipeline()
 {
 	if (m_hPipeline != nullptr)
 	{

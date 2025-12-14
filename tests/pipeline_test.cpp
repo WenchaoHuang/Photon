@@ -86,9 +86,6 @@ void pipeline_test()
 	assert(program10->type() == pt::Program::AnyHit);
 	assert(program11->type() == pt::Program::Miss);
 
-	auto pipeline = context->createPipeline({ program2, program9, program11 });
-	assert(pipeline != nullptr);
-
 	ns::Array<LaunchParams>			launchParams(allocator, 1);
 	ns::Array<pt::EmptyRecord>		raygenRecord(allocator, 1);
 	ns::Array<pt::EmptyRecord>		missRecord(allocator, 1);
@@ -101,6 +98,7 @@ void pipeline_test()
 
 	stream.memcpy<void>(missRecord.data(), program11->header().storage, sizeof(pt::SbtHeader));
 	stream.memcpy<void>(raygenRecord.data(), program2->header().storage, sizeof(pt::SbtHeader));
-	pipeline->launch<LaunchParams>(stream, launchParams, sbt, 10, 1);
-	stream.sync();
+
+	pt::Pipeline pipeline = pt::Pipeline(context, { program2, program9, program11 });
+	pipeline.launch<LaunchParams>(stream, launchParams, sbt, 10, 1).sync();
 }

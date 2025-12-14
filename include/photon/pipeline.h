@@ -23,6 +23,7 @@
 
 #include "fwd.h"
 #include "sbt_record.h"
+#include <nucleus/array_proxy.h>
 #include <nucleus/device_pointer.h>
 #include <optix.h>
 #include <string>
@@ -111,18 +112,27 @@ namespace PHOTON_NAMESPACE
 	*****************************************************************************/
 
 	/**
-	 *	@brief		Abstract interface for an OptiX pipeline.
+	 *	@brief		Wrapper for an OptiX pipeline.
 	 *	@note		A pipeline represents the compiled set of program groups
 	 *				(raygen, miss, hit, callable, etc.) and encapsulates the
 	 *				execution configuration for launching OptiX kernels.
 	 */
 	class Pipeline
 	{
+		NS_NONCOPYABLE(Pipeline)
 
 	public:
 
-		//!	Virtual destructor.
-		virtual ~Pipeline() {}
+		//!	@brief	
+		PHOTON_API explicit Pipeline(SharedContext context,
+									 ns::ArrayProxy<std::shared_ptr<Program>> programs,
+									 const OptixPipelineCompileOptions & pipelineCompileOptions = OptixPipelineCompileOptions{},
+									 const OptixPipelineLinkOptions & pipelineLinkOptions = OptixPipelineLinkOptions{});
+
+		//!	@brief	Destructor.
+		PHOTON_API ~Pipeline();
+
+	public:
 
 		/**
 		 *	@brief		Launch the pipeline with the given parameters.
@@ -133,13 +143,16 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	width - Launch width in threads.
 		 *	@param[in]	height - Launch height in threads (default = 1).
 		 *	@param[in]	depth - Launch depth in threads (default = 1).
+		 *	@retval		ns::Stream& - Reference to this stream (enables method chaining).
 		 *	@note		This function dispatches ray generation and subsequent OptiX programs across the specified launch dimensions.
 		 *	@note		Multiple launches may be issued in parallel from multiple threads as long as they target different CUDA streams.
 		 *	@warning	The stream and pipeline must belong to the same device context.
 		 */
-		template<typename Type> void launch(ns::Stream & stream, ns::dev::Ptr<const Type> pipelineParams, const OptixShaderBindingTable & sbt, size_t width, size_t height = 1, size_t depth = 1)
+		template<typename Type> ns::Stream & launch(ns::Stream & stream, ns::dev::Ptr<const Type> pipelineParams, const OptixShaderBindingTable & sbt, size_t width, size_t height = 1, size_t depth = 1)
 		{
 			this->doLaunch(stream, pipelineParams.data(), sizeof(Type), sbt, static_cast<unsigned int>(width), static_cast<unsigned int>(height), static_cast<unsigned int>(depth));
+
+			return stream;
 		}
 
 	private:
@@ -148,6 +161,12 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Internal implementation of pipeline launch.
 		 *	@note		This is the low-level entry point that forwards the call to the OptiX API with untyped pipeline parameters.
 		 */
-		virtual void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth) = 0;
+		PHOTON_API void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth);
+
+	private:
+
+		const SharedContext 	m_context;
+
+		OptixPipeline			m_hPipeline;
 	};
 }

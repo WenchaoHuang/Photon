@@ -77,7 +77,8 @@ int main()
 	auto intersectionProg = module->at("__intersection__");
 	auto raygenProg = module->at("__raygen__");
 	auto missProg = module->at("__miss__");
-	auto pipeline = deviceContext->createPipeline({ raygenProg, intersectionProg, missProg }, pipelineCompileOptions);
+
+	pt::Pipeline pipeline(deviceContext, { raygenProg, intersectionProg, missProg }, pipelineCompileOptions);
 
 	//	device data
 	ns::Array<int>					devCount(allocator, 1);
@@ -125,7 +126,7 @@ int main()
 	{
 		ns::ScopedTimer scopedTimer(stream, [&](std::chrono::nanoseconds ns) { timeCost = ns.count() * 1e-3; });
 
-		pipeline->launch<LaunchParams>(stream, devLaunchParams, sbt, count);
+		pipeline.launch<LaunchParams>(stream, devLaunchParams, sbt, count);
 	}
 
 	//	Download data

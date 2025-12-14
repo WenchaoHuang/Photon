@@ -93,29 +93,4 @@ namespace PHOTON_NAMESPACE
 
 		SbtHeader								m_header;
 	};
-
-	/*****************************************************************************
-	*****************************    PipelineImpl    *****************************
-	*****************************************************************************/
-
-	class PipelineImpl : public Pipeline
-	{
-
-	public:
-
-		PipelineImpl(std::shared_ptr<DeviceContext> deviceContext, OptixPipeline hPipeline);
-
-		~PipelineImpl();
-
-	public:
-
-		virtual void doLaunch(ns::Stream & stream, const void * pipelineParams, size_t pipelineParamsSize,
-							  const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height, unsigned int depth) override;
-
-	private:
-
-		const std::shared_ptr<DeviceContext>		m_deviceContext;
-
-		const OptixPipeline							m_hPipeline;
-	};
 }
