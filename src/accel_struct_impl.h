@@ -22,7 +22,7 @@
 #pragma once
 
 #include "accel_struct.h"
-#include "device_context_impl.h"
+#include "device_context.h"
 #include <nucleus/array_1d.h>
 #include <optix.h>
 
@@ -30,8 +30,6 @@
 
 namespace PHOTON_NAMESPACE
 {
-	class DeviceContextImpl;
-
 	/*****************************************************************************
 	***************************    AccelStructBase    ****************************
 	*****************************************************************************/
@@ -41,7 +39,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		AccelStructBase(std::shared_ptr<DeviceContextImpl> deviceContext);
+		AccelStructBase(std::shared_ptr<DeviceContext> deviceContext);
 
 		~AccelStructBase();
 
@@ -77,18 +75,18 @@ namespace PHOTON_NAMESPACE
 
 	protected:
 
-		size_t											m_headerSize;
-		unsigned int									m_numSbtRecords;
+		size_t										m_headerSize;
+		unsigned int								m_numSbtRecords;
 
 	private:
 
-		ns::Array<unsigned char>						m_tempBuffer;
-		ns::Array<unsigned char>						m_outputBuffer;
-		ns::Array<unsigned char>						m_compactedBuffer;
-		OptixTraversableHandle							m_hTraversable;
-		OptixAccelBuildOptions							m_buildOptions;
-		std::vector<OptixBuildInput>					m_buildInputs;
-		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+		ns::Array<unsigned char>					m_tempBuffer;
+		ns::Array<unsigned char>					m_outputBuffer;
+		ns::Array<unsigned char>					m_compactedBuffer;
+		OptixTraversableHandle						m_hTraversable;
+		OptixAccelBuildOptions						m_buildOptions;
+		std::vector<OptixBuildInput>				m_buildInputs;
+		const std::shared_ptr<DeviceContext>		m_deviceContext;
 	};
 
 	/*****************************************************************************
@@ -100,7 +98,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		AccelStructTriangleImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : AccelStructBase(deviceContext) {}
+		AccelStructTriangleImpl(std::shared_ptr<DeviceContext> deviceContext) : AccelStructBase(deviceContext) {}
 
 	public:
 
@@ -130,7 +128,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		AccelStructAabbImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : AccelStructBase(deviceContext) {}
+		AccelStructAabbImpl(std::shared_ptr<DeviceContext> deviceContext) : AccelStructBase(deviceContext) {}
 
 	public:
 
@@ -160,7 +158,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		AccelStructCurveImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : AccelStructBase(deviceContext) {}
+		AccelStructCurveImpl(std::shared_ptr<DeviceContext> deviceContext) : AccelStructBase(deviceContext) {}
 
 	public:
 
@@ -190,7 +188,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		AccelStructSphereImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : AccelStructBase(deviceContext) {}
+		AccelStructSphereImpl(std::shared_ptr<DeviceContext> deviceContext) : AccelStructBase(deviceContext) {}
 
 	public:
 
@@ -221,7 +219,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		InstAccelStructImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : AccelStructBase(deviceContext) {}
+		InstAccelStructImpl(std::shared_ptr<DeviceContext> deviceContext) : AccelStructBase(deviceContext) {}
 
 	public:
 

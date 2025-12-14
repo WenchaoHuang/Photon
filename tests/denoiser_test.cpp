@@ -34,7 +34,7 @@
 void denoiser_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto deviceContext = pt::DeviceContext::create(device);
+	auto deviceContext = pt::SharedContext(device);
 	auto denoiser = deviceContext->createDenoiser();
 	auto allocator = device->defaultAllocator();
 

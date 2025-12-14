@@ -48,4 +48,10 @@ namespace PHOTON_NAMESPACE
 	struct NS_ALIGN(16) Color4f { float r, g, b, a; };
 	struct NS_ALIGN(16) Mat4x4 { ns::float4 rows[4]; };
 	struct NS_ALIGN(8) Aabb { ns::float3 lower, upper; };
+
+	/*****************************************************************************
+	******************************    Type alias    ******************************
+	*****************************************************************************/
+
+	using SharedContext					= ns::SharedHandle<DeviceContext>;
 }

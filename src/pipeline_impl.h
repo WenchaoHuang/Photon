@@ -29,7 +29,6 @@ namespace PHOTON_NAMESPACE
 {
 	class ModuleImpl;
 	class ProgramImpl;
-	class DeviceContextImpl;
 
 	/*****************************************************************************
 	******************************    ModuleImpl    ******************************
@@ -40,7 +39,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule);
+		ModuleImpl(std::shared_ptr<DeviceContext> deviceContext, OptixModule hModule);
 
 		~ModuleImpl();
 
@@ -48,13 +47,13 @@ namespace PHOTON_NAMESPACE
 
 		virtual std::shared_ptr<Program> at(const std::string & funcName) override;
 
-		std::shared_ptr<DeviceContextImpl> deviceContext() const { return m_deviceContext; }
+		std::shared_ptr<DeviceContext> deviceContext() const { return m_deviceContext; }
 
 	private:
 
 		std::map<std::string, std::weak_ptr<ProgramImpl>>		m_programMap;
 
-		const std::shared_ptr<DeviceContextImpl>				m_deviceContext;
+		const std::shared_ptr<DeviceContext>					m_deviceContext;
 
 		const OptixModule										m_hModule;
 	};
@@ -80,7 +79,7 @@ namespace PHOTON_NAMESPACE
 
 		static Program::Type queryProgramType(const std::string & funcName);
 
-		std::shared_ptr<DeviceContextImpl> deviceContext() const;
+		std::shared_ptr<DeviceContext> deviceContext() const;
 
 		OptixProgramGroup handle() { return m_hProgramGroup; }
 
@@ -104,7 +103,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		PipelineImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixPipeline hPipeline);
+		PipelineImpl(std::shared_ptr<DeviceContext> deviceContext, OptixPipeline hPipeline);
 
 		~PipelineImpl();
 
@@ -115,8 +114,8 @@ namespace PHOTON_NAMESPACE
 
 	private:
 
-		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+		const std::shared_ptr<DeviceContext>		m_deviceContext;
 
-		const OptixPipeline								m_hPipeline;
+		const OptixPipeline							m_hPipeline;
 	};
 }

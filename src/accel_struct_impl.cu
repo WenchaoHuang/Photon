@@ -64,7 +64,7 @@ static_assert(static_cast<int>(InstAccelStruct::InstFlags::ForceOpacityMicromapA
 *****************************    AccelStructBase    ******************************
 *********************************************************************************/
 
-AccelStructBase::AccelStructBase(std::shared_ptr<DeviceContextImpl> deviceContext) : m_deviceContext(deviceContext), m_hTraversable(0), m_numSbtRecords(0), m_headerSize(0)
+AccelStructBase::AccelStructBase(std::shared_ptr<DeviceContext> deviceContext) : m_deviceContext(deviceContext), m_hTraversable(0), m_numSbtRecords(0), m_headerSize(0)
 {
 	m_buildOptions = OptixAccelBuildOptions{};
 }

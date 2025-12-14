@@ -31,7 +31,7 @@ PHOTON_USING_NAMESPACE
 *******************************    DenoiserImpl    *******************************
 *********************************************************************************/
 
-DenoiserImpl::DenoiserImpl(std::shared_ptr<DeviceContextImpl> deviceContext) : m_deviceContext(deviceContext), m_hDenoiser(nullptr),
+DenoiserImpl::DenoiserImpl(std::shared_ptr<DeviceContext> deviceContext) : m_deviceContext(deviceContext), m_hDenoiser(nullptr),
 	m_eModelKind(ModelKind::Normal), m_maxInputWidth(0), m_maxInputHeight(0), m_inputWidth(0), m_inputHeight(0)
 {
 

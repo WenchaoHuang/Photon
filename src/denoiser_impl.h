@@ -22,7 +22,7 @@
 #pragma once
 
 #include "denoiser.h"
-#include "device_context_impl.h"
+#include "device_context.h"
 #include <nucleus/array_1d.h>
 #include <nucleus/array_2d.h>
 
@@ -37,7 +37,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		DenoiserImpl(std::shared_ptr<DeviceContextImpl> deviceContext);
+		DenoiserImpl(std::shared_ptr<DeviceContext> deviceContext);
 
 		virtual ~DenoiserImpl();
 
@@ -59,18 +59,18 @@ namespace PHOTON_NAMESPACE
 
 	protected:
 
-		ModelKind										m_eModelKind;
-		unsigned int									m_inputWidth;
-		unsigned int									m_inputHeight;
-		unsigned int									m_maxInputWidth;
-		unsigned int									m_maxInputHeight;
-		unsigned int									m_currInternalGuideLayer;
-		OptixDenoiser									m_hDenoiser;
-		ns::Array<unsigned char>						m_stateCache;
-		ns::Array<unsigned char>						m_scratchCache;
-		ns::Array<unsigned char>						m_avgColorCache;
-		ns::Array<unsigned char>						m_intensityCache;
-		ns::Array2D<unsigned char>						m_internalGuideLayers[2];
-		const std::shared_ptr<DeviceContextImpl>		m_deviceContext;
+		ModelKind									m_eModelKind;
+		unsigned int								m_inputWidth;
+		unsigned int								m_inputHeight;
+		unsigned int								m_maxInputWidth;
+		unsigned int								m_maxInputHeight;
+		unsigned int								m_currInternalGuideLayer;
+		OptixDenoiser								m_hDenoiser;
+		ns::Array<unsigned char>					m_stateCache;
+		ns::Array<unsigned char>					m_scratchCache;
+		ns::Array<unsigned char>					m_avgColorCache;
+		ns::Array<unsigned char>					m_intensityCache;
+		ns::Array2D<unsigned char>					m_internalGuideLayers[2];
+		const std::shared_ptr<DeviceContext>		m_deviceContext;
 	};
 }

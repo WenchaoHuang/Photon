@@ -21,7 +21,7 @@
  */
 
 #include "pipeline_impl.h"
-#include "device_context_impl.h"
+#include "device_context.h"
 #include <nucleus/logger.h>
 #include <nucleus/stream.h>
 #include <optix_stubs.h>
@@ -32,7 +32,7 @@ PHOTON_USING_NAMESPACE
 ********************************    ModuleImpl    ********************************
 *********************************************************************************/
 
-ModuleImpl::ModuleImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixModule hModule) : m_deviceContext(deviceContext), m_hModule(hModule)
+ModuleImpl::ModuleImpl(std::shared_ptr<DeviceContext> deviceContext, OptixModule hModule) : m_deviceContext(deviceContext), m_hModule(hModule)
 {
 
 }
@@ -218,7 +218,7 @@ Program::Type ProgramImpl::queryProgramType(const std::string & funcName)
 }
 
 
-std::shared_ptr<DeviceContextImpl> ProgramImpl::deviceContext() const
+std::shared_ptr<DeviceContext> ProgramImpl::deviceContext() const
 {
 	return m_module ? m_module->deviceContext() : nullptr;
 }
@@ -239,7 +239,7 @@ ProgramImpl::~ProgramImpl()
 *******************************    ProgramImpl    ********************************
 *********************************************************************************/
 
-PipelineImpl::PipelineImpl(std::shared_ptr<DeviceContextImpl> deviceContext, OptixPipeline hPipeline)
+PipelineImpl::PipelineImpl(std::shared_ptr<DeviceContext> deviceContext, OptixPipeline hPipeline)
 	: m_deviceContext(deviceContext), m_hPipeline(hPipeline)
 {
 

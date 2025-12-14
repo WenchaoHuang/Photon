@@ -22,8 +22,8 @@
 
 #include "pipeline_impl.h"
 #include "denoiser_impl.h"
+#include "device_context.h"
 #include "accel_struct_impl.h"
-#include "device_context_impl.h"
 
 #include <nucleus/device.h>
 #include <nucleus/logger.h>
@@ -57,7 +57,7 @@ static void optixLog(unsigned int level, const char * tag, const char * msg, [[m
 ******************************    DeviceContext    *******************************
 *********************************************************************************/
 
-std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int logLevel, [[maybe_unused]] bool validationMode)
+DeviceContext::DeviceContext(ns::Device * device, int logLevel, [[maybe_unused]] bool validationMode) : m_device(device), m_hContext(nullptr)
 {
 	OptixResult err = optixInit();
 
@@ -65,7 +65,6 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 	{
 		device->init();
 
-		OptixDeviceContext								hContext = nullptr;
 		OptixDeviceContextOptions						deviceContextOptions = {};
 	#if OPTIX_VERSION >= 70200
 		deviceContextOptions.validationMode				= validationMode ? OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL : OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_OFF;
@@ -74,37 +73,35 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 		deviceContextOptions.logCallbackFunction		= optixLog;
 		deviceContextOptions.logCallbackData			= device;
 
-		err = optixDeviceContextCreate(nullptr, &deviceContextOptions, &hContext);
+		err = optixDeviceContextCreate(nullptr, &deviceContextOptions, &m_hContext);
 
 		if (err == OPTIX_SUCCESS)
 		{
-			DeviceProp devProp = {};
-
 		#if (OPTIX_VERSION >= 70000)
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_RTCORE_VERSION, &devProp.version, sizeof(DeviceProp::version));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_SBT_OFFSET, &devProp.maxSbtOffset, sizeof(DeviceProp::maxSbtOffset));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRACE_DEPTH, &devProp.maxTraceDepth, sizeof(DeviceProp::maxTraceDepth));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCE_ID, &devProp.maxInstanceID, sizeof(DeviceProp::maxInstanceID));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCES_PER_IAS, &devProp.maxInstancesPerIAS, sizeof(DeviceProp::maxInstancesPerIAS));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_PRIMITIVES_PER_GAS, &devProp.maxPrimitivesPerGAS, sizeof(DeviceProp::maxPrimitivesPerGAS));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_SBT_RECORDS_PER_GAS, &devProp.maxSbtRecordsPerGAS, sizeof(DeviceProp::maxSbtRecordsPerGAS));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRAVERSABLE_GRAPH_DEPTH, &devProp.maxTraversableGraphDepth, sizeof(DeviceProp::maxTraversableGraphDepth));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_NUM_BITS_INSTANCE_VISIBILITY_MASK, &devProp.numBitsInstanceVisiblityMask, sizeof(DeviceProp::numBitsInstanceVisiblityMask));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_RTCORE_VERSION, &m_devProp.version, sizeof(DeviceProp::version));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_SBT_OFFSET, &m_devProp.maxSbtOffset, sizeof(DeviceProp::maxSbtOffset));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRACE_DEPTH, &m_devProp.maxTraceDepth, sizeof(DeviceProp::maxTraceDepth));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCE_ID, &m_devProp.maxInstanceID, sizeof(DeviceProp::maxInstanceID));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCES_PER_IAS, &m_devProp.maxInstancesPerIAS, sizeof(DeviceProp::maxInstancesPerIAS));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_PRIMITIVES_PER_GAS, &m_devProp.maxPrimitivesPerGAS, sizeof(DeviceProp::maxPrimitivesPerGAS));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_SBT_RECORDS_PER_GAS, &m_devProp.maxSbtRecordsPerGAS, sizeof(DeviceProp::maxSbtRecordsPerGAS));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRAVERSABLE_GRAPH_DEPTH, &m_devProp.maxTraversableGraphDepth, sizeof(DeviceProp::maxTraversableGraphDepth));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_NUM_BITS_INSTANCE_VISIBILITY_MASK, &m_devProp.numBitsInstanceVisiblityMask, sizeof(DeviceProp::numBitsInstanceVisiblityMask));
 		#endif
 		#if (OPTIX_VERSION >= 80100)
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_SHADER_EXECUTION_REORDERING, &devProp.shaderExecutionReordering, sizeof(DeviceProp::shaderExecutionReordering));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_SHADER_EXECUTION_REORDERING, &m_devProp.shaderExecutionReordering, sizeof(DeviceProp::shaderExecutionReordering));
 		#endif
 		#if (OPTIX_VERSION >= 90000)
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_CLUSTER_ACCEL, &devProp.clusterAccel, sizeof(DeviceProp::clusterAccel));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_COOP_VEC, &devProp.cooperativeVector, sizeof(DeviceProp::cooperativeVector));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_CLUSTER_VERTICES, &devProp.maxClusterVertices, sizeof(DeviceProp::maxClusterVertices));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_CLUSTER_TRIANGLES, &devProp.maxClusterTriangles, sizeof(DeviceProp::maxClusterTriangles));
-			optixDeviceContextGetProperty(hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_STRUCTURED_GRID_RESOLUTION, &devProp.maxStructuredGridResolution, sizeof(DeviceProp::maxStructuredGridResolution));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_CLUSTER_ACCEL, &m_devProp.clusterAccel, sizeof(DeviceProp::clusterAccel));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_COOP_VEC, &m_devProp.cooperativeVector, sizeof(DeviceProp::cooperativeVector));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_CLUSTER_VERTICES, &m_devProp.maxClusterVertices, sizeof(DeviceProp::maxClusterVertices));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_CLUSTER_TRIANGLES, &m_devProp.maxClusterTriangles, sizeof(DeviceProp::maxClusterTriangles));
+			optixDeviceContextGetProperty(m_hContext, OPTIX_DEVICE_PROPERTY_LIMIT_MAX_STRUCTURED_GRID_RESOLUTION, &m_devProp.maxStructuredGridResolution, sizeof(DeviceProp::maxStructuredGridResolution));
 		#endif
 
-			NS_INFO_LOG("Creating Optix context on device(%d) successfully, RT-Core version: %d.", device->id(), devProp.version);
+			NS_INFO_LOG("Creating Optix context on device(%d) successfully, RT-Core version: %d.", device->id(), m_devProp.version);
 
-			return std::make_shared<DeviceContextImpl>(device, hContext, devProp);
+			return;
 		}
 	}
 
@@ -113,20 +110,10 @@ std::shared_ptr<DeviceContext> DeviceContext::create(ns::Device * device, int lo
 	throw err;
 }
 
-/*********************************************************************************
-****************************    DeviceContextImpl    *****************************
-*********************************************************************************/
 
-DeviceContextImpl::DeviceContextImpl(ns::Device * device, OptixDeviceContext hContext, const DeviceProp & devProp)
-	: m_device(device), m_hContext(hContext), m_devProp(devProp)
-{
-
-}
-
-
-std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * ptxStr, size_t ptxSize,
-														const OptixModuleCompileOptions & moduleCompileOptions,
-														const OptixPipelineCompileOptions & pipelineCompileOptions)
+std::shared_ptr<Module> DeviceContext::createModule(const unsigned char * ptxStr, size_t ptxSize,
+													const OptixModuleCompileOptions & moduleCompileOptions,
+													const OptixPipelineCompileOptions & pipelineCompileOptions)
 {
 	OptixModule hModule = nullptr;
 
@@ -147,9 +134,9 @@ std::shared_ptr<Module> DeviceContextImpl::createModule(const unsigned char * pt
 }
 
 
-std::unique_ptr<Pipeline> DeviceContextImpl::createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
-															const OptixPipelineCompileOptions & pipelineCompileOptions,
-															const OptixPipelineLinkOptions & pipelineLinkOptions)
+std::unique_ptr<Pipeline> DeviceContext::createPipeline(ns::ArrayProxy<std::shared_ptr<Program>> programs,
+														const OptixPipelineCompileOptions & pipelineCompileOptions,
+														const OptixPipelineLinkOptions & pipelineLinkOptions)
 {
 	OptixPipeline hPipeline = nullptr;
 
@@ -184,43 +171,43 @@ std::unique_ptr<Pipeline> DeviceContextImpl::createPipeline(ns::ArrayProxy<std::
 }
 
 
-std::unique_ptr<InstAccelStruct> DeviceContextImpl::createInstAccelStruct()
+std::unique_ptr<InstAccelStruct> DeviceContext::createInstAccelStruct()
 {
 	return std::make_unique<InstAccelStructImpl>(this->shared_from_this());
 }
 
 
-std::unique_ptr<AccelStructAabb> DeviceContextImpl::createAccelStructAabb()
+std::unique_ptr<AccelStructAabb> DeviceContext::createAccelStructAabb()
 {
 	return std::make_unique<AccelStructAabbImpl>(this->shared_from_this());
 }
 
 
-std::unique_ptr<AccelStructCurve> DeviceContextImpl::createAccelStructCurve()
+std::unique_ptr<AccelStructCurve> DeviceContext::createAccelStructCurve()
 {
 	return std::make_unique<AccelStructCurveImpl>(this->shared_from_this());
 }
 
 
-std::unique_ptr<AccelStructSphere> DeviceContextImpl::createAccelStructSphere()
+std::unique_ptr<AccelStructSphere> DeviceContext::createAccelStructSphere()
 {
 	return std::make_unique<AccelStructSphereImpl>(this->shared_from_this());
 }
 
 
-std::unique_ptr<AccelStructTriangle> DeviceContextImpl::createAccelStructTriangle()
+std::unique_ptr<AccelStructTriangle> DeviceContext::createAccelStructTriangle()
 {
 	return std::make_unique<AccelStructTriangleImpl>(this->shared_from_this());
 }
 
 
-std::unique_ptr<Denoiser> DeviceContextImpl::createDenoiser()
+std::unique_ptr<Denoiser> DeviceContext::createDenoiser()
 {
 	return std::make_unique<DenoiserImpl>(this->shared_from_this());
 }
 
 
-DeviceContextImpl::~DeviceContextImpl()
+DeviceContext::~DeviceContext()
 {
 	if (m_hContext != nullptr)
 	{

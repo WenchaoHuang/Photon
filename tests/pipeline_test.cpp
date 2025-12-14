@@ -39,7 +39,7 @@
 void pipeline_test()
 {
 	auto device = ns::Context::getInstance()->device(0);
-	auto context = pt::DeviceContext::create(device, 4, true);
+	auto context = pt::SharedContext(device, 4, true);
 	auto allocator = device->defaultAllocator();
 	auto & stream = device->defaultStream();
 
