@@ -25,6 +25,7 @@
 #include <nucleus/logger.h>
 #include <nucleus/stream.h>
 #include <optix_stubs.h>
+#include <utility>
 
 PHOTON_USING_NAMESPACE
 
