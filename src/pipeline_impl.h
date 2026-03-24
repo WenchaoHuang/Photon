@@ -49,6 +49,8 @@ namespace PHOTON_NAMESPACE
 
 		std::shared_ptr<DeviceContext> deviceContext() const { return m_deviceContext; }
 
+		OptixModule handle() const { return m_hModule; }
+
 	private:
 
 		std::map<std::string, std::weak_ptr<ProgramImpl>>		m_programMap;
@@ -67,7 +69,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type);
+		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type, std::string funcName = {});
 
 		~ProgramImpl();
 
@@ -81,6 +83,10 @@ namespace PHOTON_NAMESPACE
 
 		std::shared_ptr<DeviceContext> deviceContext() const;
 
+		std::shared_ptr<ModuleImpl> module() const { return m_module; }
+
+		const std::string & entryFunctionName() const { return m_funcName; }
+
 		OptixProgramGroup handle() { return m_hProgramGroup; }
 
 	private:
@@ -90,6 +96,8 @@ namespace PHOTON_NAMESPACE
 		const OptixProgramGroup					m_hProgramGroup;
 
 		const Program::Type						m_progType;
+
+		const std::string						m_funcName;
 
 		SbtHeader								m_header;
 	};
