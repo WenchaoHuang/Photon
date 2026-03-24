@@ -116,6 +116,15 @@ namespace PHOTON_NAMESPACE
 			return this->createModule(ptx, ptxSize, moduleCompileOptions, pipelineCompileOptions);
 		}
 
+		//!	@brief		Create a built-in intersection module for the specified primitive type.
+		//!				Built-in IS modules provide OptiX's built-in intersection programs for
+		//!				primitives such as triangles, spheres, and curves. Programs retrieved
+		//!				from a built-in IS module must be named with the "__builtin_intersection__"
+		//!				prefix and are created as hitgroup program groups.
+		PHOTON_API std::shared_ptr<Module> createBuiltinISModule(const OptixBuiltinISOptions & builtinISOptions,
+																 const OptixModuleCompileOptions & moduleCompileOptions = OptixModuleCompileOptions{},
+																 const OptixPipelineCompileOptions & pipelineCompileOptions = OptixPipelineCompileOptions{});
+
 		//!	@brief		Create accel structs.
 		PHOTON_API std::unique_ptr<InstAccelStruct> createInstAccelStruct();
 		PHOTON_API std::unique_ptr<AccelStructAabb> createAccelStructAabb();

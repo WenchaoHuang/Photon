@@ -134,6 +134,25 @@ std::shared_ptr<Module> DeviceContext::createModule(const unsigned char * ptxStr
 }
 
 
+std::shared_ptr<Module> DeviceContext::createBuiltinISModule(const OptixBuiltinISOptions & builtinISOptions,
+															 const OptixModuleCompileOptions & moduleCompileOptions,
+															 const OptixPipelineCompileOptions & pipelineCompileOptions)
+{
+	OptixModule hModule = nullptr;
+
+	OptixResult err = optixBuiltinISModuleGet(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, &builtinISOptions, &hModule);
+
+	if (err == OPTIX_SUCCESS)
+	{
+		return std::make_shared<BuiltinISModuleImpl>(this->shared_from_this(), hModule);
+	}
+
+	NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+	throw err;
+}
+
+
 std::unique_ptr<InstAccelStruct> DeviceContext::createInstAccelStruct()
 {
 	return std::make_unique<InstAccelStructImpl>(this->shared_from_this());

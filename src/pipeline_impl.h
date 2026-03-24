@@ -29,6 +29,7 @@ namespace PHOTON_NAMESPACE
 {
 	class ModuleImpl;
 	class ProgramImpl;
+	class BuiltinISModuleImpl;
 
 	/*****************************************************************************
 	******************************    ModuleImpl    ******************************
@@ -59,6 +60,34 @@ namespace PHOTON_NAMESPACE
 	};
 
 	/*****************************************************************************
+	***************************    BuiltinISModuleImpl    ************************
+	*****************************************************************************/
+
+	class BuiltinISModuleImpl : public Module, public std::enable_shared_from_this<BuiltinISModuleImpl>
+	{
+
+	public:
+
+		BuiltinISModuleImpl(std::shared_ptr<DeviceContext> deviceContext, OptixModule hModule);
+
+		~BuiltinISModuleImpl();
+
+	public:
+
+		virtual std::shared_ptr<Program> at(const std::string & funcName) override;
+
+		std::shared_ptr<DeviceContext> deviceContext() const { return m_deviceContext; }
+
+	private:
+
+		std::map<std::string, std::weak_ptr<ProgramImpl>>		m_programMap;
+
+		const std::shared_ptr<DeviceContext>					m_deviceContext;
+
+		const OptixModule										m_hModule;
+	};
+
+	/*****************************************************************************
 	*****************************    ProgramImpl    ******************************
 	*****************************************************************************/
 
@@ -67,7 +96,7 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type);
+		ProgramImpl(std::shared_ptr<DeviceContext> deviceContext, std::shared_ptr<Module> module, OptixProgramGroup hProgramGroup, Program::Type type);
 
 		~ProgramImpl();
 
@@ -79,13 +108,15 @@ namespace PHOTON_NAMESPACE
 
 		static Program::Type queryProgramType(const std::string & funcName);
 
-		std::shared_ptr<DeviceContext> deviceContext() const;
+		std::shared_ptr<DeviceContext> deviceContext() const { return m_deviceContext; }
 
 		OptixProgramGroup handle() { return m_hProgramGroup; }
 
 	private:
 
-		const std::shared_ptr<ModuleImpl>		m_module;
+		const std::shared_ptr<DeviceContext>	m_deviceContext;
+
+		const std::shared_ptr<Module>			m_module;
 
 		const OptixProgramGroup					m_hProgramGroup;
 

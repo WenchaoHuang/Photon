@@ -135,7 +135,7 @@ std::shared_ptr<Program> ModuleImpl::at(const std::string & funcName)
 		return nullptr;
 	}
 
-	auto program = std::make_shared<ProgramImpl>(this->shared_from_this(), hProgramGroup, progType);
+	auto program = std::make_shared<ProgramImpl>(m_deviceContext, this->shared_from_this(), hProgramGroup, progType);
 
 	m_programMap[funcName] = program;
 
@@ -154,11 +154,91 @@ ModuleImpl::~ModuleImpl()
 }
 
 /*********************************************************************************
+***********************    BuiltinISModuleImpl    ********************************
+*********************************************************************************/
+
+BuiltinISModuleImpl::BuiltinISModuleImpl(std::shared_ptr<DeviceContext> deviceContext, OptixModule hModule) : m_deviceContext(deviceContext), m_hModule(hModule)
+{
+
+}
+
+
+std::shared_ptr<Program> BuiltinISModuleImpl::at(const std::string & funcName)
+{
+	// 1. Validation
+	auto progType = ProgramImpl::queryProgramType(funcName);
+
+	if (funcName.empty())
+	{
+		NS_ERROR_LOG("Empty function name!");
+
+		return nullptr;
+	}
+	else if (progType != Program::BuiltinIntersection)
+	{
+		NS_ERROR_LOG("Invalid function name for built-in IS module: %s", funcName.c_str());
+
+		return nullptr;
+	}
+
+	// 2. Check cache
+	auto iter = m_programMap.find(funcName);
+
+	if (iter != m_programMap.end())
+	{
+		if (!iter->second.expired())
+		{
+			auto program = iter->second.lock();
+
+			if (program != nullptr)
+			{
+				return program;
+			}
+		}
+	}
+
+	// 3. Create hitgroup with built-in IS (entryFunctionNameIS must be nullptr for built-in modules)
+	OptixProgramGroup hProgramGroup = nullptr;
+	OptixProgramGroupDesc programGroupDesc = { .flags = OPTIX_PROGRAM_GROUP_FLAGS_NONE };
+	OptixProgramGroupOptions programGroupOptions = {};
+
+	programGroupDesc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+	programGroupDesc.hitgroup.moduleIS = m_hModule;
+	programGroupDesc.hitgroup.entryFunctionNameIS = nullptr;
+
+	OptixResult err = optixProgramGroupCreate(m_deviceContext->handle(), &programGroupDesc, 1, &programGroupOptions, nullptr, nullptr, &hProgramGroup);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		return nullptr;
+	}
+
+	auto program = std::make_shared<ProgramImpl>(m_deviceContext, this->shared_from_this(), hProgramGroup, progType);
+
+	m_programMap[funcName] = program;
+
+	return program;
+}
+
+
+BuiltinISModuleImpl::~BuiltinISModuleImpl()
+{
+	if (m_hModule != nullptr)
+	{
+		OptixResult err = optixModuleDestroy(m_hModule);
+
+		NS_ERROR_LOG_IF(err != OPTIX_SUCCESS, "%s.", optixGetErrorString(err));
+	}
+}
+
+/*********************************************************************************
 *******************************    ProgramImpl    ********************************
 *********************************************************************************/
 
-ProgramImpl::ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type)
-	: m_module(module), m_hProgramGroup(hProgramGroup), m_progType(type)
+ProgramImpl::ProgramImpl(std::shared_ptr<DeviceContext> deviceContext, std::shared_ptr<Module> module, OptixProgramGroup hProgramGroup, Program::Type type)
+	: m_deviceContext(deviceContext), m_module(module), m_hProgramGroup(hProgramGroup), m_progType(type)
 {
 	OptixResult err = optixSbtRecordPackHeader(m_hProgramGroup, m_header.storage);
 
@@ -215,12 +295,6 @@ Program::Type ProgramImpl::queryProgramType(const std::string & funcName)
 	else if (funcName.starts_with("__builtin_intersection__"))		return Program::BuiltinIntersection;
 	else if (funcName.starts_with("__continuation_callable__"))		return Program::ContinuationCallable;
 	else															return Program::Unknow;
-}
-
-
-std::shared_ptr<DeviceContext> ProgramImpl::deviceContext() const
-{
-	return m_module ? m_module->deviceContext() : nullptr;
 }
 
 

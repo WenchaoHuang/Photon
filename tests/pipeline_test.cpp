@@ -101,4 +101,22 @@ void pipeline_test()
 
 	pt::Pipeline pipeline = pt::Pipeline(context, { program2, program9, program11 });
 	pipeline.launch<LaunchParams>(stream, launchParams, sbt, 10, 1).sync();
+
+	// Test built-in IS module (triangle intersection, available since OptiX 7.0)
+	OptixBuiltinISOptions builtinISOptions = {};
+	builtinISOptions.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_TRIANGLE;
+	builtinISOptions.usesMotionBlur = 0;
+
+	auto builtinModule = context->createBuiltinISModule(builtinISOptions);
+	auto builtinProg0 = builtinModule->at("");								//	error: empty function name
+	auto builtinProg1 = builtinModule->at("__raygen__");					//	error: wrong type for builtin IS module
+	auto builtinProg2 = builtinModule->at("__builtin_intersection__");
+	auto builtinProg3 = builtinModule->at("__builtin_intersection__");		//	same name, should return cached program
+
+	assert(builtinModule != nullptr);
+	assert(builtinProg0 == nullptr);
+	assert(builtinProg1 == nullptr);
+	assert(builtinProg2 != nullptr);
+	assert(builtinProg3 == builtinProg2);
+	assert(builtinProg2->type() == pt::Program::BuiltinIntersection);
 }
