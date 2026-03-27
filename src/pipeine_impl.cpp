@@ -135,7 +135,7 @@ std::shared_ptr<Program> ModuleImpl::at(const std::string & funcName)
 		return nullptr;
 	}
 
-	auto program = std::make_shared<ProgramImpl>(this->shared_from_this(), hProgramGroup, progType);
+	auto program = std::make_shared<ProgramImpl>(this->shared_from_this(), m_hModule, funcName, hProgramGroup, progType);
 
 	m_programMap[funcName] = program;
 
@@ -157,8 +157,8 @@ ModuleImpl::~ModuleImpl()
 *******************************    ProgramImpl    ********************************
 *********************************************************************************/
 
-ProgramImpl::ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type)
-	: m_module(module), m_hProgramGroup(hProgramGroup), m_progType(type)
+ProgramImpl::ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixModule hModule, const std::string & entryName, OptixProgramGroup hProgramGroup, Program::Type type)
+	: m_module(module), m_deviceContext(nullptr), m_hModule(hModule), m_entryName(entryName), m_hProgramGroup(hProgramGroup), m_progType(type)
 {
 	OptixResult err = optixSbtRecordPackHeader(m_hProgramGroup, m_header.storage);
 
@@ -173,14 +173,113 @@ ProgramImpl::ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup h
 }
 
 
+ProgramImpl::ProgramImpl(std::shared_ptr<DeviceContext> deviceContext, std::vector<std::shared_ptr<ProgramImpl>> components, OptixProgramGroup hProgramGroup, Program::Type type)
+	: m_module(nullptr), m_deviceContext(deviceContext), m_components(std::move(components)), m_hModule(nullptr), m_entryName(), m_hProgramGroup(hProgramGroup), m_progType(type)
+{
+	OptixResult err = optixSbtRecordPackHeader(m_hProgramGroup, m_header.storage);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		optixProgramGroupDestroy(m_hProgramGroup);
+
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		throw err;
+	}
+}
+
+
+static bool isHitType(Program::Type t)
+{
+	return t == Program::Intersection || t == Program::ClosestHit || t == Program::AnyHit;
+}
+
+
 std::shared_ptr<Program> Program::combine(std::shared_ptr<Program> program0, std::shared_ptr<Program> program1)
 {
 	auto impl_0 = std::dynamic_pointer_cast<ProgramImpl>(program0);
 	auto impl_1 = std::dynamic_pointer_cast<ProgramImpl>(program1);
 
-	//	TODO
+	if (!impl_0 || !impl_1)
+	{
+		NS_ERROR_LOG("Invalid program!");
 
-	return nullptr;
+		return nullptr;
+	}
+
+	auto deviceContext = impl_0->deviceContext();
+
+	if (!deviceContext)
+	{
+		NS_ERROR_LOG("Invalid device context!");
+
+		return nullptr;
+	}
+
+	auto t0 = impl_0->type();
+	auto t1 = impl_1->type();
+
+	OptixProgramGroup hProgramGroup = nullptr;
+	OptixProgramGroupDesc desc = { .flags = OPTIX_PROGRAM_GROUP_FLAGS_NONE };
+	OptixProgramGroupOptions options = {};
+	Program::Type resultType;
+
+	if ((t0 == Program::DirectCallable && t1 == Program::ContinuationCallable) ||
+		(t0 == Program::ContinuationCallable && t1 == Program::DirectCallable))
+	{
+		auto dc = (t0 == Program::DirectCallable) ? impl_0 : impl_1;
+		auto cc = (t0 == Program::ContinuationCallable) ? impl_0 : impl_1;
+
+		desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+		desc.callables.moduleDC = dc->moduleHandle();
+		desc.callables.entryFunctionNameDC = dc->entryName().c_str();
+		desc.callables.moduleCC = cc->moduleHandle();
+		desc.callables.entryFunctionNameCC = cc->entryName().c_str();
+
+		resultType = Program::CallableGroup;
+	}
+	else if (isHitType(t0) && isHitType(t1) && t0 != t1)
+	{
+		desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+
+		for (auto & impl : { impl_0, impl_1 })
+		{
+			if (impl->type() == Program::Intersection)
+			{
+				desc.hitgroup.moduleIS = impl->moduleHandle();
+				desc.hitgroup.entryFunctionNameIS = impl->entryName().c_str();
+			}
+			else if (impl->type() == Program::ClosestHit)
+			{
+				desc.hitgroup.moduleCH = impl->moduleHandle();
+				desc.hitgroup.entryFunctionNameCH = impl->entryName().c_str();
+			}
+			else if (impl->type() == Program::AnyHit)
+			{
+				desc.hitgroup.moduleAH = impl->moduleHandle();
+				desc.hitgroup.entryFunctionNameAH = impl->entryName().c_str();
+			}
+		}
+
+		resultType = Program::HitGroup;
+	}
+	else
+	{
+		NS_ERROR_LOG("Incompatible program types for combine!");
+
+		return nullptr;
+	}
+
+	OptixResult err = optixProgramGroupCreate(deviceContext->handle(), &desc, 1, &options, nullptr, nullptr, &hProgramGroup);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		return nullptr;
+	}
+
+	return std::make_shared<ProgramImpl>(deviceContext, std::vector<std::shared_ptr<ProgramImpl>>{ impl_0, impl_1 }, hProgramGroup, resultType);
 }
 
 
@@ -193,13 +292,62 @@ std::shared_ptr<Program> Program::combine(std::shared_ptr<Program> program0, std
 	if (!impl_0 || !impl_1 || !impl_2)
 	{
 		NS_ERROR_LOG("Invalid program!");
-	}
-	else
-	{
-		//	TODO
+
+		return nullptr;
 	}
 
-	return nullptr;
+	if (!isHitType(impl_0->type()) || !isHitType(impl_1->type()) || !isHitType(impl_2->type()) ||
+		impl_0->type() == impl_1->type() || impl_0->type() == impl_2->type() || impl_1->type() == impl_2->type())
+	{
+		NS_ERROR_LOG("Incompatible program types for combine!");
+
+		return nullptr;
+	}
+
+	auto deviceContext = impl_0->deviceContext();
+
+	if (!deviceContext)
+	{
+		NS_ERROR_LOG("Invalid device context!");
+
+		return nullptr;
+	}
+
+	OptixProgramGroup hProgramGroup = nullptr;
+	OptixProgramGroupDesc desc = { .flags = OPTIX_PROGRAM_GROUP_FLAGS_NONE };
+	OptixProgramGroupOptions options = {};
+
+	desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+
+	for (auto & impl : { impl_0, impl_1, impl_2 })
+	{
+		if (impl->type() == Program::Intersection)
+		{
+			desc.hitgroup.moduleIS = impl->moduleHandle();
+			desc.hitgroup.entryFunctionNameIS = impl->entryName().c_str();
+		}
+		else if (impl->type() == Program::ClosestHit)
+		{
+			desc.hitgroup.moduleCH = impl->moduleHandle();
+			desc.hitgroup.entryFunctionNameCH = impl->entryName().c_str();
+		}
+		else if (impl->type() == Program::AnyHit)
+		{
+			desc.hitgroup.moduleAH = impl->moduleHandle();
+			desc.hitgroup.entryFunctionNameAH = impl->entryName().c_str();
+		}
+	}
+
+	OptixResult err = optixProgramGroupCreate(deviceContext->handle(), &desc, 1, &options, nullptr, nullptr, &hProgramGroup);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		return nullptr;
+	}
+
+	return std::make_shared<ProgramImpl>(deviceContext, std::vector<std::shared_ptr<ProgramImpl>>{ impl_0, impl_1, impl_2 }, hProgramGroup, Program::HitGroup);
 }
 
 
@@ -220,7 +368,7 @@ Program::Type ProgramImpl::queryProgramType(const std::string & funcName)
 
 std::shared_ptr<DeviceContext> ProgramImpl::deviceContext() const
 {
-	return m_module ? m_module->deviceContext() : nullptr;
+	return m_module ? m_module->deviceContext() : m_deviceContext;
 }
 
 

@@ -75,6 +75,8 @@ void pipeline_test()
 	assert(program9 != nullptr);
 	assert(program10 != nullptr);
 	assert(program11 != nullptr);
+	assert(program12 != nullptr);
+	assert(program13 != nullptr);
 
 	assert(program2->type() == pt::Program::Raygen);
 	assert(program3->type() == pt::Program::Raygen);
@@ -85,6 +87,8 @@ void pipeline_test()
 	assert(program9->type() == pt::Program::ClosestHit);
 	assert(program10->type() == pt::Program::AnyHit);
 	assert(program11->type() == pt::Program::Miss);
+	assert(program12->type() == pt::Program::CallableGroup);
+	assert(program13->type() == pt::Program::HitGroup);
 
 	ns::Array<LaunchParams>			launchParams(allocator, 1);
 	ns::Array<pt::EmptyRecord>		raygenRecord(allocator, 1);

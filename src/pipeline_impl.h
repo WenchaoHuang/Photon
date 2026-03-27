@@ -67,7 +67,9 @@ namespace PHOTON_NAMESPACE
 
 	public:
 
-		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup hProgramGroup, Program::Type type);
+		ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixModule hModule, const std::string & entryName, OptixProgramGroup hProgramGroup, Program::Type type);
+
+		ProgramImpl(std::shared_ptr<DeviceContext> deviceContext, std::vector<std::shared_ptr<ProgramImpl>> components, OptixProgramGroup hProgramGroup, Program::Type type);
 
 		~ProgramImpl();
 
@@ -83,14 +85,26 @@ namespace PHOTON_NAMESPACE
 
 		OptixProgramGroup handle() { return m_hProgramGroup; }
 
+		OptixModule moduleHandle() const { return m_hModule; }
+
+		const std::string & entryName() const { return m_entryName; }
+
 	private:
 
-		const std::shared_ptr<ModuleImpl>		m_module;
+		const std::shared_ptr<ModuleImpl>					m_module;
 
-		const OptixProgramGroup					m_hProgramGroup;
+		const std::shared_ptr<DeviceContext>				m_deviceContext;
 
-		const Program::Type						m_progType;
+		const std::vector<std::shared_ptr<ProgramImpl>>		m_components;
 
-		SbtHeader								m_header;
+		const OptixModule									m_hModule;
+
+		const std::string									m_entryName;
+
+		const OptixProgramGroup								m_hProgramGroup;
+
+		const Program::Type									m_progType;
+
+		SbtHeader											m_header;
 	};
 }
