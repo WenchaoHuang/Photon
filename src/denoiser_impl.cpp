@@ -146,7 +146,7 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 		{
 			//!	@see	NVIDIA Optix 9.0 Programming Guide >> Chater: Functions and data structures for denoising.
 			//!	@note	The previousOutputInternalGuideLayer image content must be set to zero for the first frame.
-			stream.memsetZero(m_internalGuideLayers[0].data(), m_internalGuideLayers[0].bytes());
+			stream.memset(m_internalGuideLayers[0].data(), 0, m_internalGuideLayers[0].bytes());
 		}
 	#endif
 	}

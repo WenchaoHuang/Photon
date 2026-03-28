@@ -122,7 +122,7 @@ int main()
 	sbt.missRecordCount = 1;
 
 	double timeCost = 0.0;
-	stream.memsetZero(devCount.data(), devCount.bytes()).sync();
+	stream.memset(devCount.data(), 0, devCount.bytes()).sync();
 	{
 		ns::ScopedTimer scopedTimer(stream, [&](std::chrono::nanoseconds ns) { timeCost = ns.count() * 1e-3; });
 
