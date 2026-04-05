@@ -164,8 +164,6 @@ ProgramImpl::ProgramImpl(std::shared_ptr<ModuleImpl> module, OptixProgramGroup h
 
 	if (err != OPTIX_SUCCESS)
 	{
-		optixProgramGroupDestroy(m_hProgramGroup);
-
 		NS_ERROR_LOG("%s.", optixGetErrorString(err));
 
 		throw err;

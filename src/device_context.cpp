@@ -112,8 +112,8 @@ DeviceContext::DeviceContext(ns::Device * device, int logLevel, [[maybe_unused]]
 
 
 std::shared_ptr<Module> DeviceContext::createModule(const unsigned char * ptxStr, size_t ptxSize,
-													const OptixModuleCompileOptions & moduleCompileOptions,
-													const OptixPipelineCompileOptions & pipelineCompileOptions)
+													const OptixPipelineCompileOptions & pipelineCompileOptions,
+													const OptixModuleCompileOptions & moduleCompileOptions)
 {
 	OptixModule hModule = nullptr;
 
@@ -131,6 +131,46 @@ std::shared_ptr<Module> DeviceContext::createModule(const unsigned char * ptxStr
 	NS_ERROR_LOG("%s.", optixGetErrorString(err));
 
 	throw err;
+}
+
+
+std::shared_ptr<Program> DeviceContext::getBuiltinISProgram(OptixBuiltinISOptions builtinISOptions, const OptixPipelineCompileOptions & pipelineCompileOptions)
+{
+	// 1. Get builtin IS module
+	OptixModule hBuiltinModule = nullptr;
+	OptixModuleCompileOptions moduleCompileOptions = {};
+
+	OptixResult err = optixBuiltinISModuleGet(m_hContext, &moduleCompileOptions, &pipelineCompileOptions, &builtinISOptions, &hBuiltinModule);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		return nullptr;
+	}
+
+	// 2. Create hitgroup program with builtin IS (no entry function name)
+	OptixProgramGroup hProgramGroup = nullptr;
+	OptixProgramGroupDesc desc = { .flags = OPTIX_PROGRAM_GROUP_FLAGS_NONE };
+	OptixProgramGroupOptions options = {};
+
+	desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+	desc.hitgroup.entryFunctionNameIS = nullptr;
+	desc.hitgroup.moduleIS = hBuiltinModule;
+
+	err = optixProgramGroupCreate(m_hContext, &desc, 1, &options, nullptr, nullptr, &hProgramGroup);
+
+	if (err != OPTIX_SUCCESS)
+	{
+		NS_ERROR_LOG("%s.", optixGetErrorString(err));
+
+		optixModuleDestroy(hBuiltinModule);
+
+		return nullptr;
+	}
+
+	// 3. Wrap as ProgramImpl (module = nullptr, since builtin module is self-contained)
+	return std::make_shared<ProgramImpl>(nullptr, hProgramGroup, Program::BuiltinIntersection);
 }
 
 

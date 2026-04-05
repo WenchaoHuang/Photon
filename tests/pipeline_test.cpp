@@ -45,8 +45,11 @@ void pipeline_test()
 
 	assert(context->device() == device);
 
+	OptixPipelineCompileOptions pipelineCompileOptions = {};
+	pipelineCompileOptions.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_SPHERE;
+
 	auto devProp = context->properties();
-	auto module = context->createModule(rt_program_optixir);
+	auto module = context->createModule(rt_program_optixir, pipelineCompileOptions);
 
 	auto program0 = module->at("");								//	error: empty function name
 	auto program1 = module->at("xxxxx");						//	error: invalid function name
@@ -63,6 +66,10 @@ void pipeline_test()
 	auto program12 = pt::Program::combine(program6, program7);
 	auto program13 = pt::Program::combine(program8, program9, program10);
 
+	OptixBuiltinISOptions builtinISOptions = {};
+	builtinISOptions.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_SPHERE;
+	auto program14 = context->getBuiltinISProgram(builtinISOptions, pipelineCompileOptions);
+
 	assert(program0 == nullptr);
 	assert(program1 == nullptr);
 	assert(program2 != nullptr);
@@ -75,6 +82,7 @@ void pipeline_test()
 	assert(program9 != nullptr);
 	assert(program10 != nullptr);
 	assert(program11 != nullptr);
+	assert(program14 != nullptr);
 
 	assert(program2->type() == pt::Program::Raygen);
 	assert(program3->type() == pt::Program::Raygen);
@@ -99,6 +107,6 @@ void pipeline_test()
 	stream.memcpy<void>(missRecord.data(), program11->header().storage, sizeof(pt::SbtHeader));
 	stream.memcpy<void>(raygenRecord.data(), program2->header().storage, sizeof(pt::SbtHeader));
 
-	pt::Pipeline pipeline = pt::Pipeline(context, { program2, program9, program11 });
+	pt::Pipeline pipeline = pt::Pipeline(context, { program2, program9, program11, program14 }, pipelineCompileOptions);
 	pipeline.launch<LaunchParams>(stream, launchParams, sbt, 10, 1).sync();
 }
