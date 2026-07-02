@@ -22,8 +22,8 @@
 #pragma once
 
 #include "fwd.h"
+#include <nucleus/span.h>
 #include <nucleus/array_1d.h>
-#include <nucleus/array_proxy.h>
 #include <nucleus/vector_types.h>
 #include <nucleus/device_pointer.h>
 #include <optix.h>
@@ -174,19 +174,19 @@ namespace PHOTON_NAMESPACE
 		explicit AccelStructTriangle(std::shared_ptr<class DeviceContext> deviceContext) : GeomAccelStruct(std::move(deviceContext)) {}
 
 		//!	@brief	Builds the triangle GAS from the supplied build inputs.
-		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<OptixBuildInputTriangleArray> buildInputs, BuildOptions buildOptions)
+		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::Span<const OptixBuildInputTriangleArray> buildInputs, BuildOptions buildOptions)
 		{
 			AccelStruct::build(stream, allocator, this->makeBuildInput(buildInputs), buildOptions);
 		}
 
 		//!	@brief	Rebuilds the triangle GAS from the supplied build inputs.
-		void rebuild(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputTriangleArray> buildInputs = {})
+		void rebuild(ns::Stream & stream, ns::Span<const OptixBuildInputTriangleArray> buildInputs = {})
 		{
 			AccelStruct::rebuild(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
 
 		//!	@brief	Refits the triangle GAS from the supplied build inputs.
-		void refit(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputTriangleArray> buildInputs = {})
+		void refit(ns::Stream & stream, ns::Span<const OptixBuildInputTriangleArray> buildInputs = {})
 		{
 			AccelStruct::refit(stream, buildInputs.empty() ? m_cachedBuildInputs: this->makeBuildInput(buildInputs));
 		}
@@ -194,7 +194,7 @@ namespace PHOTON_NAMESPACE
 	private:
 
 		//!	@brief	Helper function to convert triangle build inputs to the generic `OptixBuildInput` format.
-		const std::vector<OptixBuildInput> & makeBuildInput(ns::ArrayProxy<OptixBuildInputTriangleArray> buildInputs)
+		const std::vector<OptixBuildInput> & makeBuildInput(ns::Span<const OptixBuildInputTriangleArray> buildInputs)
 		{
 			m_cachedBuildInputs.resize(buildInputs.size());
 
@@ -221,19 +221,19 @@ namespace PHOTON_NAMESPACE
 		explicit AccelStructAabb(std::shared_ptr<class DeviceContext> deviceContext) : GeomAccelStruct(std::move(deviceContext)) {}
 
 		//!	@brief	Builds the AABB GAS from the supplied build inputs.
-		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<OptixBuildInputCustomPrimitiveArray> buildInputs, BuildOptions buildOptions)
+		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::Span<const OptixBuildInputCustomPrimitiveArray> buildInputs, BuildOptions buildOptions)
 		{
 			AccelStruct::build(stream, allocator, this->makeBuildInput(buildInputs), buildOptions);
 		}
 
 		//!	@brief	Rebuilds the AABB GAS from the supplied build inputs.
-		void rebuild(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputCustomPrimitiveArray> buildInputs = {})
+		void rebuild(ns::Stream & stream, ns::Span<const OptixBuildInputCustomPrimitiveArray> buildInputs = {})
 		{
 			AccelStruct::rebuild(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
 
 		//!	@brief	Refits the AABB GAS from the supplied build inputs.
-		void refit(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputCustomPrimitiveArray> buildInputs = {})
+		void refit(ns::Stream & stream, ns::Span<const OptixBuildInputCustomPrimitiveArray> buildInputs = {})
 		{
 			AccelStruct::refit(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
@@ -241,7 +241,7 @@ namespace PHOTON_NAMESPACE
 	private:
 
 		//!	@brief	Helper function to convert custom primitive build inputs to the generic `OptixBuildInput` format.
-		const std::vector<OptixBuildInput> & makeBuildInput(ns::ArrayProxy<OptixBuildInputCustomPrimitiveArray> buildInputs)
+		const std::vector<OptixBuildInput> & makeBuildInput(ns::Span<const OptixBuildInputCustomPrimitiveArray> buildInputs)
 		{
 			m_cachedBuildInputs.resize(buildInputs.size());
 
@@ -276,19 +276,19 @@ namespace PHOTON_NAMESPACE
 		explicit AccelStructCurve(std::shared_ptr<class DeviceContext> deviceContext) : GeomAccelStruct(std::move(deviceContext)) {}
 
 		//!	@brief	Builds the curve GAS from the supplied build inputs.
-		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<OptixBuildInputCurveArray> buildInputs, BuildOptions buildOptions)
+		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::Span<const OptixBuildInputCurveArray> buildInputs, BuildOptions buildOptions)
 		{
 			AccelStruct::build(stream, allocator, this->makeBuildInput(buildInputs), buildOptions);
 		}
 
 		//!	@brief	Rebuilds the curve GAS from the supplied build inputs.
-		void rebuild(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputCurveArray> buildInputs = {})
+		void rebuild(ns::Stream & stream, ns::Span<const OptixBuildInputCurveArray> buildInputs = {})
 		{
 			AccelStruct::rebuild(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
 
 		//!	@brief	Refits the curve GAS from the supplied build inputs.
-		void refit(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputCurveArray> buildInputs = {})
+		void refit(ns::Stream & stream, ns::Span<const OptixBuildInputCurveArray> buildInputs = {})
 		{
 			AccelStruct::refit(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
@@ -296,7 +296,7 @@ namespace PHOTON_NAMESPACE
 	private:
 
 		//!	@brief	Helper function to convert curve build inputs to the generic `OptixBuildInput` format.
-		const std::vector<OptixBuildInput> & makeBuildInput(ns::ArrayProxy<OptixBuildInputCurveArray> buildInputs)
+		const std::vector<OptixBuildInput> & makeBuildInput(ns::Span<const OptixBuildInputCurveArray> buildInputs)
 		{
 			m_cachedBuildInputs.resize(buildInputs.size());
 
@@ -328,19 +328,19 @@ namespace PHOTON_NAMESPACE
 		explicit AccelStructSphere(std::shared_ptr<class DeviceContext> deviceContext) : GeomAccelStruct(std::move(deviceContext)) {}
 
 		//!	@brief	Builds the sphere GAS from the supplied build inputs.
-		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::ArrayProxy<OptixBuildInputSphereArray> buildInputs, BuildOptions buildOptions)
+		void build(ns::Stream & stream, ns::AllocPtr allocator, ns::Span<const OptixBuildInputSphereArray> buildInputs, BuildOptions buildOptions)
 		{
 			AccelStruct::build(stream, allocator, this->makeBuildInput(buildInputs), buildOptions);
 		}
 
 		//!	@brief	Rebuilds the sphere GAS from the supplied build inputs.
-		void rebuild(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputSphereArray> buildInputs = {})
+		void rebuild(ns::Stream & stream, ns::Span<const OptixBuildInputSphereArray> buildInputs = {})
 		{
 			AccelStruct::rebuild(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
 
 		//!	@brief	Refits the sphere GAS from the supplied build inputs.
-		void refit(ns::Stream & stream, ns::ArrayProxy<OptixBuildInputSphereArray> buildInputs = {})
+		void refit(ns::Stream & stream, ns::Span<const OptixBuildInputSphereArray> buildInputs = {})
 		{
 			AccelStruct::refit(stream, buildInputs.empty() ? m_cachedBuildInputs : this->makeBuildInput(buildInputs));
 		}
@@ -348,7 +348,7 @@ namespace PHOTON_NAMESPACE
 	private:
 
 		//!	@brief	Helper function to convert sphere build inputs to the generic `OptixBuildInput` format.
-		const std::vector<OptixBuildInput> & makeBuildInput(ns::ArrayProxy<OptixBuildInputSphereArray> buildInputs)
+		const std::vector<OptixBuildInput> & makeBuildInput(ns::Span<const OptixBuildInputSphereArray> buildInputs)
 		{
 			m_cachedBuildInputs.resize(buildInputs.size());
 

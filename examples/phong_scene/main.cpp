@@ -126,7 +126,7 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
-	accelStruct.build(stream, allocator, buildInput, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
 }
 
 /*********************************************************************************
@@ -166,7 +166,7 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
-	accelStruct.build(stream, allocator, buildInput, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
 }
 
 /*********************************************************************************
@@ -223,7 +223,7 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
-	accelStruct.build(stream, allocator, buildInput, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
 }
 
 /*********************************************************************************
@@ -274,7 +274,7 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
-	accelStruct.build(stream, allocator, buildInput, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
 }
 
 /*********************************************************************************

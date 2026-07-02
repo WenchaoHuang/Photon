@@ -23,7 +23,7 @@
 
 #include "fwd.h"
 #include "sbt_record.h"
-#include <nucleus/array_proxy.h>
+#include <nucleus/span.h>
 #include <nucleus/device_pointer.h>
 #include <optix.h>
 #include <string>
@@ -122,7 +122,7 @@ namespace PHOTON_NAMESPACE
 
 		//!	@brief	
 		PHOTON_API explicit Pipeline(SharedContext context,
-									 ns::ArrayProxy<std::shared_ptr<Program>> programs,
+									 ns::Span<const std::shared_ptr<Program>> programs,
 									 const OptixPipelineCompileOptions & pipelineCompileOptions = OptixPipelineCompileOptions{},
 									 const OptixPipelineLinkOptions & pipelineLinkOptions = OptixPipelineLinkOptions{});
 

@@ -396,7 +396,7 @@ ProgramImpl::~ProgramImpl()
 *********************************    Pipeline    *********************************
 *********************************************************************************/
 
-Pipeline::Pipeline(SharedContext context, ns::ArrayProxy<std::shared_ptr<Program>> programs,
+Pipeline::Pipeline(SharedContext context, ns::Span<const std::shared_ptr<Program>> programs,
 				   const OptixPipelineCompileOptions & pipelineCompileOptions,
 				   const OptixPipelineLinkOptions & pipelineLinkOptions)
 	: m_context(context), m_hPipeline(nullptr)
@@ -419,7 +419,7 @@ Pipeline::Pipeline(SharedContext context, ns::ArrayProxy<std::shared_ptr<Program
 		}
 	}
 
-	OptixResult err = optixPipelineCreate(context->handle(), &pipelineCompileOptions, &pipelineLinkOptions, programGroups.data(), programs.size(), nullptr, nullptr, &m_hPipeline);
+	OptixResult err = optixPipelineCreate(context->handle(), &pipelineCompileOptions, &pipelineLinkOptions, programGroups.data(), (int)programs.size(), nullptr, nullptr, &m_hPipeline);
 
 	if (err != OPTIX_SUCCESS)
 	{

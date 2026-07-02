@@ -106,7 +106,7 @@ int main()
 
 	pt::AccelStruct::BuildOptions buildOptions = { .headerSize = 200 };
 
-	accelStruct.build(stream, allocator, buildInput, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
 
 	//	launch parameters
 	LaunchParams hostLaunchParams = {};
