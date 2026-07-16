@@ -57,7 +57,7 @@ static void optixLog(unsigned int level, const char * tag, const char * msg, [[m
 ******************************    DeviceContext    *******************************
 *********************************************************************************/
 
-DeviceContext::DeviceContext(ns::Device * device, int logLevel, [[maybe_unused]] bool validationMode) : m_device(device), m_hContext(nullptr)
+DeviceContext::DeviceContext(ns::Device * device, int logLevel, [[maybe_unused]] bool validationMode) : m_device(device), m_hContext(nullptr), m_devProp({})
 {
 	OptixResult err = optixInit();
 
