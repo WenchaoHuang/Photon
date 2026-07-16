@@ -64,18 +64,16 @@ static inline unsigned char toDisplayByte(float value)
 ***************************    Host Vector Math    ********************************
 *********************************************************************************/
 
-static inline ns::float3 make_f3(float x, float y, float z) { return ns::float3{ x, y, z }; }
-static inline ns::float4 make_f4(float x, float y, float z, float w) { return ns::float4{ x, y, z, w }; }
-static inline ns::float3 operator-(ns::float3 a, ns::float3 b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
+static inline float3 operator-(float3 a, float3 b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
 
-static inline ns::float3 cross(ns::float3 a, ns::float3 b)
+static inline float3 cross(float3 a, float3 b)
 {
 	return { a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x };
 }
 
-static inline float dot(ns::float3 a, ns::float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static inline float dot(float3 a, float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 
-static inline ns::float3 normalize(ns::float3 v)
+static inline float3 normalize(float3 v)
 {
 	float len = std::sqrt(dot(v, v));
 	return { v.x / len, v.y / len, v.z / len };
@@ -88,11 +86,11 @@ static inline ns::float3 normalize(ns::float3 v)
 //	Creates a ground plane (two triangles forming a quad)
 static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 							 ns::Stream & stream, ns::AllocPtr allocator,
-							 ns::Array<ns::float3> & vertexBuffer,
+							 ns::Array<float3> & vertexBuffer,
 							 ns::Array<unsigned int> & indexBuffer)
 {
 	//	Ground plane vertices
-	std::vector<ns::float3> vertices = {
+	std::vector<float3> vertices = {
 		{ -5.0f, -1.0f, -5.0f },
 		{  5.0f, -1.0f, -5.0f },
 		{  5.0f, -1.0f,  5.0f },
@@ -104,7 +102,7 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 		0, 3, 2,
 	};
 
-	vertexBuffer = ns::Array<ns::float3>(allocator, vertices.size());
+	vertexBuffer = ns::Array<float3>(allocator, vertices.size());
 	indexBuffer = ns::Array<unsigned int>(allocator, indices.size());
 	stream.memcpy(vertexBuffer.data(), vertices.data(), vertices.size());
 	stream.memcpy(indexBuffer.data(), indices.data(), indices.size());
@@ -114,7 +112,7 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 
 	OptixBuildInputTriangleArray buildInput = {};
 	buildInput.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
-	buildInput.vertexStrideInBytes = sizeof(ns::float3);
+	buildInput.vertexStrideInBytes = sizeof(float3);
 	buildInput.numVertices = static_cast<unsigned int>(vertices.size());
 	buildInput.vertexBuffers = &vertexPtr;
 	buildInput.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
@@ -135,10 +133,10 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 
 static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 						   ns::Stream & stream, ns::AllocPtr allocator,
-						   ns::Array<ns::float3> & centerBuffer, ns::Array<float> & radiusBuffer)
+						   ns::Array<float3> & centerBuffer, ns::Array<float> & radiusBuffer)
 {
 	//	Sphere positions
-	std::vector<ns::float3> centers = {
+	std::vector<float3> centers = {
 		{  0.0f,  0.0f,  0.0f },
 		{  2.0f,  0.0f, -1.0f },
 		{ -2.0f,  0.5f, -0.5f },
@@ -146,7 +144,7 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 
 	std::vector<float> radii = { 1.0f, 0.7f, 0.5f };
 
-	centerBuffer = ns::Array<ns::float3>(allocator, centers.size());
+	centerBuffer = ns::Array<float3>(allocator, centers.size());
 	radiusBuffer = ns::Array<float>(allocator, radii.size());
 	stream.memcpy(centerBuffer.data(), centers.data(), centers.size());
 	stream.memcpy(radiusBuffer.data(), radii.data(), radii.size());
@@ -159,7 +157,7 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 	buildInput.vertexBuffers = &centerPtr;
 	buildInput.radiusBuffers = &radiusPtr;
 	buildInput.numVertices = static_cast<unsigned int>(centers.size());
-	buildInput.vertexStrideInBytes = sizeof(ns::float3);
+	buildInput.vertexStrideInBytes = sizeof(float3);
 	buildInput.radiusStrideInBytes = sizeof(float);
 	buildInput.flags = &flags;
 	buildInput.numSbtRecords = 1;
@@ -175,12 +173,12 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 
 static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 						  ns::Stream & stream, ns::AllocPtr allocator,
-						  ns::Array<ns::float4> & controlPointBuffer,
+						  ns::Array<float4> & controlPointBuffer,
 						  ns::Array<float> & curveWidthBuffer,
 						  ns::Array<unsigned int> & curveIndexBuffer)
 {
 	//	Quadratic B-spline curve: 4 control points (x, y, z, width)
-	std::vector<ns::float4> controlPoints = {
+	std::vector<float4> controlPoints = {
 		{ -3.0f, -1.0f,  2.0f, 0.1f },
 		{ -2.0f,  1.0f,  2.0f, 0.12f },
 		{ -1.0f, -0.5f,  2.0f, 0.08f },
@@ -196,7 +194,7 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 		widths[i] = controlPoints[i].w;
 	}
 
-	controlPointBuffer = ns::Array<ns::float4>(allocator, controlPoints.size());
+	controlPointBuffer = ns::Array<float4>(allocator, controlPoints.size());
 	curveWidthBuffer = ns::Array<float>(allocator, widths.size());
 	curveIndexBuffer = ns::Array<unsigned int>(allocator, segmentIndices.size());
 	stream.memcpy(controlPointBuffer.data(), controlPoints.data(), controlPoints.size());
@@ -212,7 +210,7 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 	buildInput.numPrimitives = static_cast<unsigned int>(segmentIndices.size());
 	buildInput.vertexBuffers = &controlPointPtr;
 	buildInput.numVertices = static_cast<unsigned int>(controlPoints.size());
-	buildInput.vertexStrideInBytes = sizeof(ns::float4);
+	buildInput.vertexStrideInBytes = sizeof(float4);
 	buildInput.widthBuffers = &widthPtr;
 	buildInput.widthStrideInBytes = sizeof(float);
 	buildInput.indexBuffer = (CUdeviceptr)curveIndexBuffer.data();
@@ -233,14 +231,14 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 						 ns::Stream & stream, ns::AllocPtr allocator,
 						 ns::Array<pt::Aabb> & aabbBuffer,
-						 ns::Array<ns::float3> & aabbCenterBuffer,
+						 ns::Array<float3> & aabbCenterBuffer,
 						 float & outRadius)
 {
 	//	Custom spheres represented as AABBs
 	float radius = 0.4f;
 	outRadius = radius;
 
-	std::vector<ns::float3> centers = {
+	std::vector<float3> centers = {
 		{  3.0f,  0.0f,  2.0f },
 		{  3.8f,  0.3f,  1.5f },
 		{  2.5f, -0.2f,  2.5f },
@@ -258,7 +256,7 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 	}
 
 	aabbBuffer = ns::Array<pt::Aabb>(allocator, aabbs.size());
-	aabbCenterBuffer = ns::Array<ns::float3>(allocator, centers.size());
+	aabbCenterBuffer = ns::Array<float3>(allocator, centers.size());
 	stream.memcpy(aabbBuffer.data(), aabbs.data(), aabbs.size());
 	stream.memcpy(aabbCenterBuffer.data(), centers.data(), centers.size());
 
@@ -281,7 +279,7 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 ***********************    Helper: Write PPM Image    *****************************
 *********************************************************************************/
 
-static void writePPM(const char * filename, const ns::float3 * image, unsigned int width, unsigned int height)
+static void writePPM(const char * filename, const float3 * image, unsigned int width, unsigned int height)
 {
 	FILE * fp = nullptr;
 
@@ -305,7 +303,7 @@ static void writePPM(const char * filename, const ns::float3 * image, unsigned i
 	{
 		for (unsigned int x = 0; x < width; x++)
 		{
-			const ns::float3 c = image[y * width + x];
+			const float3 c = image[y * width + x];
 			unsigned char r = static_cast<unsigned char>(std::fmin(c.x, 1.0f) * 255.0f);
 			unsigned char g = static_cast<unsigned char>(std::fmin(c.y, 1.0f) * 255.0f);
 			unsigned char b = static_cast<unsigned char>(std::fmin(c.z, 1.0f) * 255.0f);
@@ -321,7 +319,7 @@ static void writePPM(const char * filename, const ns::float3 * image, unsigned i
 
 #ifdef _MSC_VER
 
-static std::vector<EzColorRGB> makePreviewImage(const ns::float3 * image, unsigned int width, unsigned int height)
+static std::vector<EzColorRGB> makePreviewImage(const float3 * image, unsigned int width, unsigned int height)
 {
 	std::vector<EzColorRGB> preview(width * height);
 
@@ -329,7 +327,7 @@ static std::vector<EzColorRGB> makePreviewImage(const ns::float3 * image, unsign
 	{
 		for (unsigned int x = 0; x < width; x++)
 		{
-			const ns::float3 c = image[(height - 1 - y) * width + x];
+			const float3 c = image[(height - 1 - y) * width + x];
 			preview[y * width + x] = EzColorRGB{
 				toDisplayByte(c.x),
 				toDisplayByte(c.y),
@@ -443,19 +441,19 @@ int main()
 	//	========================================================================
 
 	//	--- 1. Triangle GAS (ground plane) ---
-	ns::Array<ns::float3> triVertices;
+	ns::Array<float3> triVertices;
 	ns::Array<unsigned int> triIndices;
 	pt::AccelStructTriangle triangleGAS(deviceContext);
 	buildTriangleGAS(triangleGAS, stream, allocator, triVertices, triIndices);
 
 	//	--- 2. Sphere GAS ---
-	ns::Array<ns::float3> sphereCenters;
+	ns::Array<float3> sphereCenters;
 	ns::Array<float> sphereRadii;
 	pt::AccelStructSphere sphereGAS(deviceContext);
 	buildSphereGAS(sphereGAS, stream, allocator, sphereCenters, sphereRadii);
 
 	//	--- 3. Curve GAS ---
-	ns::Array<ns::float4> curveControlPoints;
+	ns::Array<float4> curveControlPoints;
 	ns::Array<float> curveWidths;
 	ns::Array<unsigned int> curveIndices;
 	pt::AccelStructCurve curveGAS(deviceContext);
@@ -463,7 +461,7 @@ int main()
 
 	//	--- 4. AABB GAS (custom primitives) ---
 	ns::Array<pt::Aabb> aabbBuffer;
-	ns::Array<ns::float3> aabbCenters;
+	ns::Array<float3> aabbCenters;
 	float aabbRadius = 0.0f;
 	pt::AccelStructAabb aabbGAS(deviceContext);
 	buildAabbGAS(aabbGAS, stream, allocator, aabbBuffer, aabbCenters, aabbRadius);
@@ -535,21 +533,21 @@ int main()
 	//	HitGroup SBT data
 	HitGroupData hitDataTriangle = {};
 	hitDataTriangle.material = matGround;
-	hitDataTriangle.vertices = dev::Ptr<const ns::float3>(triVertices.data(), triVertices.size());
+	hitDataTriangle.vertices = dev::Ptr<const float3>(triVertices.data(), triVertices.size());
 	hitDataTriangle.indices = dev::Ptr<const unsigned int>(triIndices.data(), triIndices.size());
 
 	HitGroupData hitDataSphere = {};
 	hitDataSphere.material = matSphere;
-	hitDataSphere.sphereCenters = dev::Ptr<const ns::float3>(sphereCenters.data(), sphereCenters.size());
+	hitDataSphere.sphereCenters = dev::Ptr<const float3>(sphereCenters.data(), sphereCenters.size());
 	hitDataSphere.sphereRadii = dev::Ptr<const float>(sphereRadii.data(), sphereRadii.size());
 
 	HitGroupData hitDataCurve = {};
 	hitDataCurve.material = matCurve;
-	hitDataCurve.curveControlPoints = dev::Ptr<const ns::float4>(curveControlPoints.data(), curveControlPoints.size());
+	hitDataCurve.curveControlPoints = dev::Ptr<const float4>(curveControlPoints.data(), curveControlPoints.size());
 
 	HitGroupData hitDataAabb = {};
 	hitDataAabb.material = matAabb;
-	hitDataAabb.aabbCenters = dev::Ptr<const ns::float3>(aabbCenters.data(), aabbCenters.size());
+	hitDataAabb.aabbCenters = dev::Ptr<const float3>(aabbCenters.data(), aabbCenters.size());
 	hitDataAabb.aabbRadius = aabbRadius;
 
 	//	Allocate SBT records on device
@@ -594,11 +592,11 @@ int main()
 
 	//	Camera setup (look at origin from slightly above)
 	hostParams.camPos = { 0.0f, 2.0f, 8.0f };
-	ns::float3 lookAt = { 0.0f, 0.0f, 0.0f };
-	ns::float3 up = { 0.0f, 1.0f, 0.0f };
-	ns::float3 w = normalize(hostParams.camPos - lookAt);	//	camera forward (away from scene)
-	ns::float3 u = normalize(cross(up, w));					//	camera right
-	ns::float3 v = cross(w, u);								//	camera up
+	float3 lookAt = { 0.0f, 0.0f, 0.0f };
+	float3 up = { 0.0f, 1.0f, 0.0f };
+	float3 w = normalize(hostParams.camPos - lookAt);	//	camera forward (away from scene)
+	float3 u = normalize(cross(up, w));					//	camera right
+	float3 v = cross(w, u);								//	camera up
 
 	float fovY = 45.0f * 3.14159265f / 180.0f;
 	float aspect = float(IMAGE_WIDTH) / float(IMAGE_HEIGHT);
@@ -618,8 +616,8 @@ int main()
 	hostParams.traversable = ias.handle();
 
 	//	Allocate output image
-	ns::Array<ns::float3> devImage(allocator, IMAGE_WIDTH * IMAGE_HEIGHT);
-	hostParams.image = dev::Ptr<ns::float3>(devImage.data(), devImage.size());
+	ns::Array<float3> devImage(allocator, IMAGE_WIDTH * IMAGE_HEIGHT);
+	hostParams.image = dev::Ptr<float3>(devImage.data(), devImage.size());
 
 	//	Upload launch params
 	ns::Array<LaunchParams> devLaunchParams(allocator, 1);
@@ -636,7 +634,7 @@ int main()
 	//	Download and save image
 	//	========================================================================
 
-	std::vector<ns::float3> hostImage(IMAGE_WIDTH * IMAGE_HEIGHT);
+	std::vector<float3> hostImage(IMAGE_WIDTH * IMAGE_HEIGHT);
 	stream.memcpy(hostImage.data(), devImage.data(), devImage.size()).sync();
 
 #ifdef _MSC_VER

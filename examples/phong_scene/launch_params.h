@@ -22,6 +22,7 @@
 #pragma once
 
 #include <optix.h>
+#include <vector_functions.h>
 #include <nucleus/vector_types.h>
 #include <nucleus/device_pointer.h>
 
@@ -31,8 +32,8 @@
 
 struct Material
 {
-	ns::float3		diffuse;		//	Kd
-	ns::float3		specular;		//	Ks
+	float3			diffuse;		//	Kd
+	float3			specular;		//	Ks
 	float			shininess;		//	specular exponent
 };
 
@@ -43,23 +44,23 @@ struct Material
 struct LaunchParams
 {
 	//	Image output
-	dev::Ptr<ns::float3>				image;
-	unsigned int						width;
-	unsigned int						height;
+	dev::Ptr<float3>				image;
+	unsigned int					width;
+	unsigned int					height;
 
 	//	Camera
-	ns::float3							camPos;
-	ns::float3							camU;			//	camera right
-	ns::float3							camV;			//	camera up
-	ns::float3							camW;			//	camera forward (negative look direction)
+	float3							camPos;
+	float3							camU;			//	camera right
+	float3							camV;			//	camera up
+	float3							camW;			//	camera forward (negative look direction)
 
 	//	Light
-	ns::float3							lightPos;
-	ns::float3							lightColor;
-	ns::float3							ambientColor;
+	float3							lightPos;
+	float3							lightColor;
+	float3							ambientColor;
 
 	//	Scene traversable (IAS)
-	OptixTraversableHandle				traversable;
+	OptixTraversableHandle			traversable;
 };
 
 /*********************************************************************************
@@ -68,20 +69,20 @@ struct LaunchParams
 
 struct HitGroupData
 {
-	Material							material;
+	Material						material;
 
 	//	For triangle geometry: vertex buffer for computing normals
-	dev::Ptr<const ns::float3>			vertices;
-	dev::Ptr<const unsigned int>		indices;
+	dev::Ptr<const float3>			vertices;
+	dev::Ptr<const unsigned int>	indices;
 
 	//	For sphere geometry: center + radius arrays
-	dev::Ptr<const ns::float3>			sphereCenters;
-	dev::Ptr<const float>				sphereRadii;
+	dev::Ptr<const float3>			sphereCenters;
+	dev::Ptr<const float>			sphereRadii;
 
 	//	For curve geometry: control point buffer
-	dev::Ptr<const ns::float4>			curveControlPoints;
+	dev::Ptr<const float4>			curveControlPoints;
 
 	//	For AABB geometry: center positions (custom primitive)
-	dev::Ptr<const ns::float3>			aabbCenters;
-	float								aabbRadius;
+	dev::Ptr<const float3>			aabbCenters;
+	float							aabbRadius;
 };
