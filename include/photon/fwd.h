@@ -54,5 +54,5 @@ namespace PHOTON_NAMESPACE
 	******************************    Type alias    ******************************
 	*****************************************************************************/
 
-	using SharedContext					= ns::SharedHandle<DeviceContext>;
+	using SharedContext = ns::SharedHandle<DeviceContext>;
 }

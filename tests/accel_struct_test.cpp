@@ -35,7 +35,7 @@
 void accel_struct_test()
 {
 	auto device = ns::Runtime::device(0);
-	auto deviceContext = pt::SharedContext(device);
+	auto deviceContext = pt::DeviceContext::create(device);
 	auto allocator = device->defaultAllocator();
 	auto & stream = device->defaultStream();
 

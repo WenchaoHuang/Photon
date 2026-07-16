@@ -69,6 +69,11 @@ namespace PHOTON_NAMESPACE
 	{
 		NS_NONCOPYABLE(DeviceContext)
 
+	private:
+
+		//!	@brief		Create a context for the device.
+		PHOTON_API explicit DeviceContext(ns::Device * device, int logLevel = 3, bool validationMode = false);
+
 	public:
 
 		/**
@@ -87,7 +92,10 @@ namespace PHOTON_NAMESPACE
 		 *	@return		Return shared pointer to the newly created context.
 		 *	@throw		OptixResult - Throw `OptixResult` in case of failure.
 		 */
-		PHOTON_API explicit DeviceContext(ns::Device * device, int logLevel = 3, bool validationMode = false);
+		static std::shared_ptr<DeviceContext> create(ns::Device * device, int logLevel = 3, bool validationMode = false)
+		{
+			return std::shared_ptr<DeviceContext>(new DeviceContext(device, logLevel, validationMode));
+		}
 
 		//!	@brief	Destructor.
 		PHOTON_API ~DeviceContext();
