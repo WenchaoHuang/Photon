@@ -230,7 +230,7 @@ std::shared_ptr<Program> Program::exception(const ProgramEntry & ex)
 
 std::shared_ptr<Program> Program::callables(const ProgramEntry & dc, const ProgramEntry & cc)
 {
-	if (!dc.module || !cc.module)
+	if (!dc.module && !cc.module)
 	{
 		NS_ERROR_LOG("At least one callable entry must be valid!");
 
