@@ -91,6 +91,9 @@ else()
 	)
 endif()
 
+# Public namespaced alias
+add_library(Photon::photon ALIAS ${TARGET_NAME})
+
 # Link directories
 target_link_libraries(${TARGET_NAME} PUBLIC nucleus)
 

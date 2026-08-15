@@ -27,14 +27,14 @@ set(OBJECT_NAME ${TARGET_NAME}-optix)
 
 # Source files
 file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
 # List of CUDA source files that should be compiled to optix format
 set(OPTIX_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/rt_program.cu"
-    "${CMAKE_CURRENT_SOURCE_DIR}/payload_test.cu"
+	"${CMAKE_CURRENT_SOURCE_DIR}/rt_program.cu"
+	"${CMAKE_CURRENT_SOURCE_DIR}/payload_test.cu"
 )
 
 # Create the executable and object target
@@ -47,52 +47,52 @@ set(GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/optixir")
 
 # Optix Generation Pipeline
 foreach(OPTIX_SOURCE ${OPTIX_SOURCES})
-    # Extract the base name (without extension)
-    get_filename_component(base ${OPTIX_SOURCE} NAME_WE)
+	# Extract the base name (without extension)
+	get_filename_component(base ${OPTIX_SOURCE} NAME_WE)
 
-    # Generated header file path
-    set(OPTIXIR_HEADER "${GENERATED_HEADERS_DIR}/${base}.optixir.h")
+	# Generated header file path
+	set(OPTIXIR_HEADER "${GENERATED_HEADERS_DIR}/${base}.optixir.h")
 
 	# Convert *.optixir into a C header using bin2c
-    add_custom_command(
-        OUTPUT ${OPTIXIR_HEADER}
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir
+	add_custom_command(
+		OUTPUT ${OPTIXIR_HEADER}
+		DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir
 		COMMAND bin2c.exe -st -c -n ${base}_optixir ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir > ${OPTIXIR_HEADER}
-        COMMENT "Converting ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir to ${OPTIXIR_HEADER} with bin2c"
-    )
+		COMMENT "Converting ${CMAKE_CURRENT_BINARY_DIR}/${OBJECT_NAME}.dir/$<CONFIG>/${base}.optixir to ${OPTIXIR_HEADER} with bin2c"
+	)
 
-    # Add generated *.optixir.h file to the target
-    target_sources(${TARGET_NAME} PRIVATE ${OPTIXIR_HEADER})
+	# Add generated *.optixir.h file to the target
+	target_sources(${TARGET_NAME} PRIVATE ${OPTIXIR_HEADER})
 
-    # Group generated files in IDE project views
-    source_group("Generated Files" FILES ${OPTIXIR_HEADER})
+	# Group generated files in IDE project views
+	source_group("Generated Files" FILES ${OPTIXIR_HEADER})
 endforeach()
 
 # Link directories
-target_link_libraries(${TARGET_NAME} PRIVATE photon)
-target_link_libraries(${OBJECT_NAME} PRIVATE photon)
+target_link_libraries(${TARGET_NAME} PRIVATE Photon::photon)
+target_link_libraries(${OBJECT_NAME} PRIVATE Photon::photon)
 
 # Make the generated header directory available for #include
 target_include_directories(${TARGET_NAME} PRIVATE ${GENERATED_HEADERS_DIR})
 
 if(MSVC)
-    # MSVC-specific compiler flags
-    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
-    target_compile_options(${OBJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
+	# MSVC-specific compiler flags
+	target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
+	target_compile_options(${OBJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX /utf-8>)
 
-    # For suppressing MSVC IntelliSense errors.
-    add_dummy_cpp(${OBJECT_NAME})
+	# For suppressing MSVC IntelliSense errors.
+	add_dummy_cpp(${OBJECT_NAME})
 endif()
 
 # CUDA-Specific Properties
 set_target_properties(${OBJECT_NAME} PROPERTIES
-    CUDA_RESOLVE_DEVICE_SYMBOLS ON
-    CUDA_OPTIX_COMPILATION ON
-    CUDA_ARCHITECTURES "75"
-    FOLDER "Tests"
+	CUDA_RESOLVE_DEVICE_SYMBOLS ON
+	CUDA_OPTIX_COMPILATION ON
+	CUDA_ARCHITECTURES "75"
+	FOLDER "Tests"
 )
 set_target_properties(${TARGET_NAME} PROPERTIES
-    CUDA_RESOLVE_DEVICE_SYMBOLS ON
-    CUDA_ARCHITECTURES "75"
-    FOLDER "Tests"
+	CUDA_RESOLVE_DEVICE_SYMBOLS ON
+	CUDA_ARCHITECTURES "75"
+	FOLDER "Tests"
 )

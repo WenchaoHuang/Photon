@@ -69,8 +69,8 @@ endforeach()
 add_dummy_cpp(${OBJECT_NAME})
 
 # Link directories
-target_link_libraries(${TARGET_NAME} PRIVATE photon)
-target_link_libraries(${OBJECT_NAME} PRIVATE photon)
+target_link_libraries(${TARGET_NAME} PRIVATE Photon::photon)
+target_link_libraries(${OBJECT_NAME} PRIVATE Photon::photon)
 
 # Make the generated header directory available for #include
 target_include_directories(${TARGET_NAME} PRIVATE ${GENERATED_HEADERS_DIR})
