@@ -21,38 +21,32 @@
  */
 
 #include <nucleus/device.h>
-#include <nucleus/stream.h>
 #include <nucleus/runtime.h>
-#include <nucleus/array_1d.h>
+#include <nucleus/allocator.h>
 
-#include <photon/accel_struct.h>
+#include <photon/denoiser.h>
 #include <photon/device_context.h>
 
 /*********************************************************************************
-****************************    accel_struct_test    *****************************
+******************************    test_denoiser    *******************************
 *********************************************************************************/
 
-void accel_struct_test()
+void test_denoiser()
 {
 	auto device = ns::Runtime::device(0);
 	auto deviceContext = pt::DeviceContext::create(device);
+	auto denoiser = deviceContext->createDenoiser();
 	auto allocator = device->defaultAllocator();
-	auto & stream = device->defaultStream();
 
-	//	Accel structs can be directly constructed by passing a device context.
-	auto instAccelStruct = std::make_unique<pt::InstAccelStruct>(deviceContext);
-	auto accelStructAabb = std::make_unique<pt::AccelStructAabb>(deviceContext);
-	auto accelStructTriangle = std::make_unique<pt::AccelStructTriangle>(deviceContext);
+#if OPTIX_VERSION > 70500
+	denoiser->preallocate(allocator, pt::Denoiser::TemporalUpscale2x, 1024, 1024);
+	denoiser->preallocate(allocator, pt::Denoiser::Upscale2x, 1024, 1024);
+#endif
+#if OPTIX_VERSION > 70400
+	denoiser->preallocate(allocator, pt::Denoiser::Temporal, 1024, 1024);
+#endif
+	denoiser->preallocate(allocator, pt::Denoiser::Normal, 1024, 1024);
 
-	assert(instAccelStruct != nullptr);
-	assert(accelStructAabb != nullptr);
-	assert(accelStructTriangle != nullptr);
-#if OPTIX_VERSION >= 70100
-	auto accelStructCurve = std::make_unique<pt::AccelStructCurve>(deviceContext);
-	assert(accelStructCurve != nullptr);
-#endif
-#if OPTIX_VERSION >= 70500
-	auto accelStructSphere = std::make_unique<pt::AccelStructSphere>(deviceContext);
-	assert(accelStructSphere != nullptr);
-#endif
+	assert(denoiser->maxInputWidth() == 1024);
+	assert(denoiser->maxInputHeight() == 1024);
 }

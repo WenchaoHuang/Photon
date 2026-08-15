@@ -26,15 +26,15 @@
 ***********************************    main    ***********************************
 *********************************************************************************/
 
-extern void pipeline_test();
-extern void denoiser_test();
-extern void accel_struct_test();
+extern void test_pipeline();
+extern void test_denoiser();
+extern void test_accel_struct();
 
 int main()
 {
-	pipeline_test();
-	denoiser_test();
-	accel_struct_test();
+	test_pipeline();
+	test_denoiser();
+	test_accel_struct();
 	system("pause");
 
 	return 0;

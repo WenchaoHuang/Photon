@@ -33,10 +33,10 @@
 #include "rt_program.optixir.h"
 
 /*********************************************************************************
-******************************    pipeline_test    *******************************
+******************************    test_pipeline    *******************************
 *********************************************************************************/
 
-void pipeline_test()
+void test_pipeline()
 {
 	auto device = ns::Runtime::device(0);
 	auto context = pt::DeviceContext::create(device, 4, true);
