@@ -28,14 +28,15 @@
 
 extern void test_pipeline();
 extern void test_denoiser();
+extern void test_build_inputs();
 extern void test_accel_struct();
 
 int main()
 {
 	test_pipeline();
 	test_denoiser();
+	test_build_inputs();
 	test_accel_struct();
 	system("pause");
-
 	return 0;
 }

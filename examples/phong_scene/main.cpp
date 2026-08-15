@@ -32,9 +32,10 @@
 #include <nucleus/array_1d.h>
 
 #include <photon/pipeline.h>
-#include <photon/accel_struct.h>
-#include <photon/device_context.h>
 #include <photon/sbt_record.h>
+#include <photon/accel_struct.h>
+#include <photon/build_inputs.h>
+#include <photon/device_context.h>
 
 #include "launch_params.h"
 #include "phong_scene.optixir.h"
@@ -110,17 +111,11 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 	CUdeviceptr vertexPtr = (CUdeviceptr)vertexBuffer.data();
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
-	OptixBuildInputTriangleArray buildInput = {};
-	buildInput.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
-	buildInput.vertexStrideInBytes = sizeof(float3);
-	buildInput.numVertices = static_cast<unsigned int>(vertices.size());
-	buildInput.vertexBuffers = &vertexPtr;
-	buildInput.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-	buildInput.indexStrideInBytes = 3 * sizeof(unsigned int);
-	buildInput.numIndexTriplets = static_cast<unsigned int>(indices.size() / 3);
-	buildInput.indexBuffer = (CUdeviceptr)indexBuffer.data();
+	pt::BuildInputTriangles buildInput;
+	buildInput.setIndexBuffer(ns::Span<const unsigned int>(indexBuffer.data(), indexBuffer.size()));
+	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &vertexPtr, 1 }, pt::VertexFormat::Float3, vertices.size());
+	buildInput.setPrimitiveIndexOffset(0);
 	buildInput.flags = &flags;
-	buildInput.numSbtRecords = 1;
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
@@ -153,14 +148,10 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 	CUdeviceptr radiusPtr = (CUdeviceptr)radiusBuffer.data();
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
-	OptixBuildInputSphereArray buildInput = {};
-	buildInput.vertexBuffers = &centerPtr;
-	buildInput.radiusBuffers = &radiusPtr;
-	buildInput.numVertices = static_cast<unsigned int>(centers.size());
-	buildInput.vertexStrideInBytes = sizeof(float3);
-	buildInput.radiusStrideInBytes = sizeof(float);
+	pt::BuildInputSpheres buildInput;
+	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &centerPtr, 1 }, centers.size());
+	buildInput.setRadiusBuffers(ns::Span<const CUdeviceptr>{ &radiusPtr, 1 }, false);
 	buildInput.flags = &flags;
-	buildInput.numSbtRecords = 1;
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
@@ -205,19 +196,14 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 	CUdeviceptr widthPtr = (CUdeviceptr)curveWidthBuffer.data();
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
-	OptixBuildInputCurveArray buildInput = {};
-	buildInput.curveType = OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE;
-	buildInput.numPrimitives = static_cast<unsigned int>(segmentIndices.size());
-	buildInput.vertexBuffers = &controlPointPtr;
-	buildInput.numVertices = static_cast<unsigned int>(controlPoints.size());
-	buildInput.vertexStrideInBytes = sizeof(float4);
-	buildInput.widthBuffers = &widthPtr;
-	buildInput.widthStrideInBytes = sizeof(float);
-	buildInput.indexBuffer = (CUdeviceptr)curveIndexBuffer.data();
-	buildInput.indexStrideInBytes = sizeof(unsigned int);
-	buildInput.flag = flags;
-	buildInput.primitiveIndexOffset = 0;
-	buildInput.endcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT;
+	pt::BuildInputCurves buildInput;
+	buildInput.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
+	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &controlPointPtr, 1 }, controlPoints.size(), sizeof(float4));
+	buildInput.setWidthBuffers(ns::Span<const CUdeviceptr>{ &widthPtr, 1 }, sizeof(float));
+	buildInput.setIndexBuffer(ns::Span<const unsigned int>(curveIndexBuffer.data(), curveIndexBuffer.size()));
+	buildInput.setGeometryFlags(flags);
+	buildInput.setPrimitiveIndexOffset(0);
+	buildInput.setEndcapFlags(OPTIX_CURVE_ENDCAP_DEFAULT);
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
@@ -263,12 +249,9 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 	CUdeviceptr aabbPtr = (CUdeviceptr)aabbBuffer.data();
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
-	OptixBuildInputCustomPrimitiveArray buildInput = {};
-	buildInput.aabbBuffers = &aabbPtr;
-	buildInput.numPrimitives = static_cast<unsigned int>(aabbs.size());
-	buildInput.strideInBytes = sizeof(pt::Aabb);
+	pt::BuildInputAabbs buildInput;
+	buildInput.setAabbBuffers(ns::Span<const CUdeviceptr>{ &aabbPtr, 1 }, aabbs.size(), sizeof(pt::Aabb));
 	buildInput.flags = &flags;
-	buildInput.numSbtRecords = 1;
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
 
