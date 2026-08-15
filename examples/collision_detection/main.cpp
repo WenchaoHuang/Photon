@@ -27,7 +27,6 @@
 #include <nucleus/device.h>
 #include <nucleus/runtime.h>
 #include <nucleus/array_1d.h>
-#include <nucleus/buffer_view.h>
 #include <nucleus/scoped_timer.h>
 
 #include <photon/pipeline.h>
