@@ -21,41 +21,11 @@
  */
 #pragma once
 
-#include "macros.h"
-#include <nucleus/fwd.h>
-#include <nucleus/version.h>
-#include <nucleus/vector_types.h>
-
 /*********************************************************************************
-***************************    Forward Declarations    ***************************
+*****************************    Library Version     *****************************
 *********************************************************************************/
 
-namespace PHOTON_NAMESPACE
-{
-	class Module;
-	class Program;
-	class Pipeline;
-	class Denoiser;
-	class DeviceContext;
-	struct ProgramEntry;
-
-	class AccelStruct;
-	class InstAccelStruct;
-	class GeomAccelStruct;
-	class AccelStructAabb;
-	class AccelStructCurve;
-	class AccelStructSphere;
-	class AccelStructTriangle;
-
-	struct NS_ALIGN(16) Color4f { float r, g, b, a; };
-	struct NS_ALIGN(16) Mat4x4 { ns::float4 rows[4]; };
-	struct NS_ALIGN(8) Aabb { ns::float3 lower, upper; };
-
-	inline constexpr ns::Version VERSION{ PHOTON_VERSION_MAJOR, PHOTON_VERSION_MINOR, PHOTON_VERSION_PATCH };
-
-	/*****************************************************************************
-	******************************    Type alias    ******************************
-	*****************************************************************************/
-
-	using SharedContext = std::shared_ptr<DeviceContext>;
-}
+#define PHOTON_VERSION_MAJOR	@PROJECT_VERSION_MAJOR@
+#define PHOTON_VERSION_MINOR	@PROJECT_VERSION_MINOR@
+#define PHOTON_VERSION_PATCH	@PROJECT_VERSION_PATCH@
+#define PHOTON_VERSION_STR		"@PROJECT_VERSION@"

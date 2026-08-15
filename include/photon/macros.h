@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "photon_export.h"
+#include "photon_version.h"
 #include <nucleus/macros.h>
 
 /*********************************************************************************

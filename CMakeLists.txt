@@ -21,7 +21,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 # Project name: Photon
-project(Photon LANGUAGES CXX CUDA)
+project(Photon VERSION 0.1.0 LANGUAGES CXX CUDA)
 
 # Organize targets into folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -50,38 +50,45 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # Source files
 file(GLOB PHOTON_SOURCES CONFIGURE_DEPENDS
-    "${PROJECT_SOURCE_DIR}/include/photon/*.cuh"
-    "${PROJECT_SOURCE_DIR}/include/photon/*.h"
-    "${PROJECT_SOURCE_DIR}/src/*.cpp"
-    "${PROJECT_SOURCE_DIR}/src/*.cuh"
-    "${PROJECT_SOURCE_DIR}/src/*.cu"
-    "${PROJECT_SOURCE_DIR}/src/*.h"
+	"${PROJECT_SOURCE_DIR}/include/photon/*.cuh"
+	"${PROJECT_SOURCE_DIR}/include/photon/*.h"
+	"${PROJECT_SOURCE_DIR}/src/*.cpp"
+	"${PROJECT_SOURCE_DIR}/src/*.cuh"
+	"${PROJECT_SOURCE_DIR}/src/*.cu"
+	"${PROJECT_SOURCE_DIR}/src/*.h"
+)
+
+# Generate public compile-time version definitions.
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/photon_version.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/photon_version.h
+	@ONLY
 )
 
 # Build library
 if (PHOTON_BUILD_SHARED_LIB)
-    # Create the shared library
-    add_library(${TARGET_NAME} SHARED ${PHOTON_SOURCES})
+	# Create the shared library
+	add_library(${TARGET_NAME} SHARED ${PHOTON_SOURCES})
 
-    # Export macro
-    target_compile_definitions(${TARGET_NAME} PRIVATE PHOTON_API_BUILD)
+	# Export macro
+	target_compile_definitions(${TARGET_NAME} PRIVATE PHOTON_API_BUILD)
 
-    # Export header
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_shared.h
-        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
-        COPYONLY
-    )
+	# Export header
+	configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_shared.h
+		${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
+		COPYONLY
+	)
 else()
-    # Create the static library
-    add_library(${TARGET_NAME} STATIC ${PHOTON_SOURCES})
+	# Create the static library
+	add_library(${TARGET_NAME} STATIC ${PHOTON_SOURCES})
 
-    # Export header
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_static.h
-        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
-        COPYONLY
-    )
+	# Export header
+	configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/cmake/${TARGET_NAME}_export_static.h
+		${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_export.h
+		COPYONLY
+	)
 endif()
 
 # Link directories
@@ -95,7 +102,7 @@ target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/in
 
 # MSVC settings
 if(MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX /utf-8 -D_CRT_SECURE_NO_WARNINGS>)
+	target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX /utf-8 -D_CRT_SECURE_NO_WARNINGS>)
 endif()
 
 # NVCC flags
@@ -103,9 +110,9 @@ target_compile_options(${TARGET_NAME} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--expt-r
 
 # CMake properties
 set_target_properties(${TARGET_NAME} PROPERTIES
-    CUDA_RESOLVE_DEVICE_SYMBOLS ON
-    CUDA_SEPARABLE_COMPILATION ON
-    CUDA_ARCHITECTURES "75"
+	CUDA_RESOLVE_DEVICE_SYMBOLS ON
+	CUDA_SEPARABLE_COMPILATION ON
+	CUDA_ARCHITECTURES "75"
 )
 
 # Filters
@@ -116,10 +123,10 @@ source_group("Source Files" FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/device_context
 
 # Optional: Add tests if enabled
 if(PHOTON_BUILD_TESTS)
-    add_subdirectory(tests)
+	add_subdirectory(tests)
 endif()
 
 # Optional: Add examples if enabled
 if(PHOTON_BUILD_EXAMPLES)
-    add_subdirectory(examples)
+	add_subdirectory(examples)
 endif()
