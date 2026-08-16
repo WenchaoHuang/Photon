@@ -110,8 +110,8 @@ int main()
 	//	launch parameters
 	LaunchParams hostLaunchParams = {};
 	hostLaunchParams.radius = radius;
-	hostLaunchParams.count = devCount.ptr();
-	hostLaunchParams.vertices = vertPos.ptr();
+	hostLaunchParams.count = devCount.span();
+	hostLaunchParams.vertices = vertPos.span();
 	hostLaunchParams.traversable = accelStruct.handle();
 
 	//	Upload data
@@ -131,7 +131,7 @@ int main()
 	sbt.missRecordCount = 1;
 
 	double timeCost = 0.0;
-	stream.memset(devCount.data(), 0, devCount.bytes()).sync();
+	stream.memset(devCount.data(), 0, devCount.size_bytes()).sync();
 	{
 		ns::ScopedTimer scopedTimer(stream, [&](std::chrono::nanoseconds ns) { timeCost = ns.count() * 1e-3; });
 

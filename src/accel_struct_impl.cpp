@@ -68,8 +68,8 @@ void AccelStruct::build(ns::Stream & stream, ns::AllocPtr allocator, const std::
 		m_outputBuffer.resize(allocator, buildOptions.headerSize + accelBufferSizes.outputSizeInBytes);
 
 		err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &optixBuildOptions, buildInputs.data(), (uint32_t)buildInputs.size(),
-							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), CUdeviceptr(m_outputBuffer.data() + buildOptions.headerSize),
-							  m_outputBuffer.bytes() - buildOptions.headerSize, &m_hTraversable, nullptr, 0);
+							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.size_bytes(), CUdeviceptr(m_outputBuffer.data() + buildOptions.headerSize),
+							  m_outputBuffer.size_bytes() - buildOptions.headerSize, &m_hTraversable, nullptr, 0);
 	}
 
 	if (err != OPTIX_SUCCESS)
@@ -93,8 +93,8 @@ void AccelStruct::rebuild(ns::Stream & stream, const std::vector<OptixBuildInput
 		m_buildOptions.operation = OPTIX_BUILD_OPERATION_BUILD;
 
 		err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &m_buildOptions, buildInputs.data(), (uint32_t)buildInputs.size(),
-							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), CUdeviceptr(m_outputBuffer.data() + m_headerSize),
-							  m_outputBuffer.bytes() - m_headerSize, &m_hTraversable, nullptr, 0);
+							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.size_bytes(), CUdeviceptr(m_outputBuffer.data() + m_headerSize),
+							  m_outputBuffer.size_bytes() - m_headerSize, &m_hTraversable, nullptr, 0);
 
 		if (err != OPTIX_SUCCESS)
 		{
@@ -115,8 +115,8 @@ void AccelStruct::refit(ns::Stream & stream, const std::vector<OptixBuildInput> 
 		m_buildOptions.operation = OPTIX_BUILD_OPERATION_UPDATE;
 
 		err = optixAccelBuild(m_deviceContext->handle(), stream.handle(), &m_buildOptions, buildInputs.data(), (uint32_t)buildInputs.size(),
-							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.bytes(), CUdeviceptr(m_outputBuffer.data() + m_headerSize),
-							  m_outputBuffer.bytes() - m_headerSize, &m_hTraversable, nullptr, 0);
+							  (CUdeviceptr)m_tempBuffer.data(), m_tempBuffer.size_bytes(), CUdeviceptr(m_outputBuffer.data() + m_headerSize),
+							  m_outputBuffer.size_bytes() - m_headerSize, &m_hTraversable, nullptr, 0);
 
 		if (err != OPTIX_SUCCESS)
 		{

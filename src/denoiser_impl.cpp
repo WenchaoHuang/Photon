@@ -154,19 +154,19 @@ void DenoiserImpl::launch(ns::Stream & stream, dev::Ptr2<Color4f> output, dev::P
 	this->internalSetup(stream, input.width(), input.height());
 
 	OptixResult eResult = optixDenoiserComputeIntensity(m_hDenoiser, stream.handle(), &inputImage,
-														(CUdeviceptr)m_intensityCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+														(CUdeviceptr)m_intensityCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.size_bytes());
 
 	if (eResult == OPTIX_SUCCESS)
 	{
 	#if OPTIX_VERSION >= 70200
-		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &inputImage, (CUdeviceptr)m_avgColorCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+		eResult = optixDenoiserComputeAverageColor(m_hDenoiser, stream.handle(), &inputImage, (CUdeviceptr)m_avgColorCache.data(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.size_bytes());
 	#endif
 
 		if (eResult == OPTIX_SUCCESS)
 		{
 		#if OPTIX_VERSION >= 70300
-			eResult = optixDenoiserInvoke(m_hDenoiser, stream.handle(), &denoiserParams, (CUdeviceptr)m_stateCache.data(), m_stateCache.bytes(),
-										  &denoiserGuideLayer, &denoiserLayer, 1, 0, 0, (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+			eResult = optixDenoiserInvoke(m_hDenoiser, stream.handle(), &denoiserParams, (CUdeviceptr)m_stateCache.data(), m_stateCache.size_bytes(),
+										  &denoiserGuideLayer, &denoiserLayer, 1, 0, 0, (CUdeviceptr)m_scratchCache.data(), m_scratchCache.size_bytes());
 		#else
 			eResult = optixDenoiserInvoke(m_hDenoiser, stream.handle(), &denoiserParams, (CUdeviceptr)m_stateCache.data(), m_stateCache.bytes(),
 										  &inputImage, 1, 0, 0, &outputImage,(CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
@@ -273,7 +273,7 @@ void DenoiserImpl::internalSetup(ns::Stream & stream, unsigned int inputWidth, u
 	if ((m_hDenoiser != nullptr) && ((m_inputWidth != inputWidth) || (m_inputHeight != inputHeight)))
 	{
 		OptixResult eResult = optixDenoiserSetup(m_hDenoiser, stream.handle(), inputWidth, inputHeight, (CUdeviceptr)m_stateCache.data(),
-												 m_stateCache.bytes(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.bytes());
+												 m_stateCache.size_bytes(), (CUdeviceptr)m_scratchCache.data(), m_scratchCache.size_bytes());
 
 		if (eResult != OPTIX_SUCCESS)
 		{

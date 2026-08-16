@@ -24,8 +24,8 @@
 #include "fwd.h"
 #include <nucleus/span.h>
 #include <nucleus/array_1d.h>
+#include <nucleus/device_span.h>
 #include <nucleus/vector_types.h>
-#include <nucleus/device_pointer.h>
 #include <optix.h>
 
 //	Backward compatibility: OptixBuildInputAabbArray was renamed to
@@ -118,9 +118,9 @@ namespace PHOTON_NAMESPACE
 		 *	@note		API `optixGetGASPointerFromHandle` requires `OPTIX_VERSION >= 8.1.0`.
 		 *
 		 */
-		dev::Ptr<unsigned char> gasHeaderBuffer()
+		dev::Span<unsigned char> gasHeaderBuffer()
 		{
-			return (m_headerSize != 0) ? dev::Ptr<unsigned char>(m_outputBuffer.data(), m_headerSize) : dev::Ptr<unsigned char>(nullptr);
+			return (m_headerSize != 0) ? dev::Span<unsigned char>(m_outputBuffer.data(), m_headerSize) : dev::Span<unsigned char>(nullptr, 0);
 		}
 
 	protected:
@@ -376,19 +376,19 @@ namespace PHOTON_NAMESPACE
 		explicit InstAccelStruct(std::shared_ptr<class DeviceContext> deviceContext) : AccelStruct(std::move(deviceContext)) {}
 
 		//!	@brief	Uploads the current host-side instance data and then builds the IAS.
-		void build(ns::Stream & stream, ns::AllocPtr allocator, dev::Ptr<const OptixInstance> instances, size_t numInstances, BuildOptions buildOptions)
+		void build(ns::Stream & stream, ns::AllocPtr allocator, dev::Span<const OptixInstance> instances, size_t numInstances, BuildOptions buildOptions)
 		{
 			AccelStruct::build(stream, allocator, this->makeBuildInput(instances, numInstances), buildOptions);
 		}
 
 		//!	@brief	Uploads the current host-side instance data and then rebuilds the IAS.
-		void rebuild(ns::Stream & stream, dev::Ptr<const OptixInstance> instances, size_t numInstances)
+		void rebuild(ns::Stream & stream, dev::Span<const OptixInstance> instances, size_t numInstances)
 		{
 			AccelStruct::rebuild(stream, this->makeBuildInput(instances, numInstances));
 		}
 
 		//!	@brief	Uploads the current host-side instance data and then refits the IAS.
-		void refit(ns::Stream & stream, dev::Ptr<const OptixInstance> instances, size_t numInstances)
+		void refit(ns::Stream & stream, dev::Span<const OptixInstance> instances, size_t numInstances)
 		{
 			AccelStruct::refit(stream, this->makeBuildInput(instances, numInstances));
 		}
@@ -396,7 +396,7 @@ namespace PHOTON_NAMESPACE
 	private:
 
 		//!	@brief	Helper function to convert instance build input to the generic `OptixBuildInput` format.
-		std::vector<OptixBuildInput> & makeBuildInput(dev::Ptr<const OptixInstance> instances, size_t numInstances)
+		std::vector<OptixBuildInput> & makeBuildInput(dev::Span<const OptixInstance> instances, size_t numInstances)
 		{
 			m_cachedBuildInputs.resize(1);
 			m_cachedBuildInputs[0].type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;

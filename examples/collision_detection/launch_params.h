@@ -22,14 +22,14 @@
 #pragma once
 
 #include <optix.h>
+#include <nucleus/device_span.h>
 #include <nucleus/vector_types.h>
-#include <nucleus/device_pointer.h>
 
 
 struct LaunchParams
 {
-	dev::Ptr<int>						count;
-	dev::Ptr<const ns::float3_16a>		vertices;
+	dev::Span<int>						count;
+	dev::Span<const ns::float3_16a>		vertices;
 	OptixTraversableHandle				traversable;
 	float								radius;
 };

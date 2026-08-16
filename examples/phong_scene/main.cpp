@@ -112,8 +112,8 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
 	pt::BuildInputTriangles buildInput;
-	buildInput.setIndexBuffer(ns::Span<const unsigned int>(indexBuffer.data(), indexBuffer.size()));
-	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &vertexPtr, 1 }, pt::VertexFormat::Float3, vertices.size());
+	buildInput.setIndexBuffer(indexBuffer.span());
+	buildInput.setVertexBuffers({ vertexPtr }, pt::VertexFormat::Float3, vertices.size());
 	buildInput.setPrimitiveIndexOffset(0);
 	buildInput.flags = &flags;
 
@@ -149,8 +149,8 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
 	pt::BuildInputSpheres buildInput;
-	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &centerPtr, 1 }, centers.size());
-	buildInput.setRadiusBuffers(ns::Span<const CUdeviceptr>{ &radiusPtr, 1 }, false);
+	buildInput.setVertexBuffers({ centerPtr }, centers.size());
+	buildInput.setRadiusBuffers({ radiusPtr }, false);
 	buildInput.flags = &flags;
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
@@ -198,9 +198,9 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 
 	pt::BuildInputCurves buildInput;
 	buildInput.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
-	buildInput.setVertexBuffers(ns::Span<const CUdeviceptr>{ &controlPointPtr, 1 }, controlPoints.size(), sizeof(float4));
-	buildInput.setWidthBuffers(ns::Span<const CUdeviceptr>{ &widthPtr, 1 }, sizeof(float));
-	buildInput.setIndexBuffer(ns::Span<const unsigned int>(curveIndexBuffer.data(), curveIndexBuffer.size()));
+	buildInput.setVertexBuffers({ controlPointPtr }, controlPoints.size(), sizeof(float4));
+	buildInput.setWidthBuffers({ widthPtr }, sizeof(float));
+	buildInput.setIndexBuffer(curveIndexBuffer.span());
 	buildInput.setGeometryFlags(flags);
 	buildInput.setPrimitiveIndexOffset(0);
 	buildInput.setEndcapFlags(OPTIX_CURVE_ENDCAP_DEFAULT);
@@ -250,7 +250,7 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
 
 	pt::BuildInputAabbs buildInput;
-	buildInput.setAabbBuffers(ns::Span<const CUdeviceptr>{ &aabbPtr, 1 }, aabbs.size(), sizeof(pt::Aabb));
+	buildInput.setAabbBuffers({ aabbPtr }, aabbs.size(), sizeof(pt::Aabb));
 	buildInput.flags = &flags;
 
 	pt::AccelStruct::BuildOptions buildOptions = {};
@@ -500,8 +500,7 @@ int main()
 	//	Build IAS
 	pt::InstAccelStruct ias(deviceContext);
 	pt::AccelStruct::BuildOptions iasBuildOptions = {};
-	ias.build(stream, allocator, dev::Ptr<const OptixInstance>(devInstances.data(), devInstances.size()),
-			  instances.size(), iasBuildOptions);
+	ias.build(stream, allocator, devInstances.span(), instances.size(), iasBuildOptions);
 
 	//	========================================================================
 	//	SBT (Shader Binding Table) setup

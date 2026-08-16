@@ -25,6 +25,7 @@
 #include <optix.h>
 #include <type_traits>
 #include <nucleus/span.h>
+#include <nucleus/device_span.h>
 #include <nucleus/vector_traits.h>
 
 namespace PHOTON_NAMESPACE
@@ -107,7 +108,7 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	numTriplets - The number of triangle index triplets in the buffer.
 		 *	@param[in]	strideInBytes - The stride between consecutive index triplets in bytes. Default is 0 (tightly packed).
 		 */
-		BuildInputTriangles & setIndexBuffer(ns::Span<const ns::byte> indexBuffer, IndicesFormat indexFormat, unsigned int strideInBytes = 0)
+		BuildInputTriangles & setIndexBuffer(dev::Span<const ns::byte> indexBuffer, IndicesFormat indexFormat, unsigned int strideInBytes = 0)
 		{
 			unsigned int indexSizeInBytes = (indexFormat == IndicesFormat::Uchar3) ? 3 : (indexFormat == IndicesFormat::Ushort3) ? 6 : 12;
 			OptixBuildInputTriangleArray::numIndexTriplets = (strideInBytes == 0) ? static_cast<unsigned int>(indexBuffer.size() / indexSizeInBytes) : static_cast<unsigned int>(indexBuffer.size() / strideInBytes);
@@ -123,7 +124,7 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Set the index buffer for the triangle build input using a span of raw integer types or three-component vector types.
 		 *	@param[in]	indices - A span of raw integer types (8, 16, or 32-bit) or three-component vector types representing the triangle indices.
 		 */
-		template<typename Type> BuildInputTriangles & setIndexBuffer(ns::Span<const Type> indices) requires (IndexType<Type> || TripletIndexType<Type>)
+		template<typename Type> BuildInputTriangles & setIndexBuffer(dev::Span<const Type> indices) requires (IndexType<Type> || TripletIndexType<Type>)
 		{
 			OptixBuildInputTriangleArray::indexBuffer = reinterpret_cast<CUdeviceptr>(indices.data());
 
@@ -162,7 +163,7 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	sizeInBytes - The size of the offset buffer in bytes, needs to be 1, 2 or 4 (8, 16 or 32 bit).
 		 *	@param[in]	strideInBytes - The stride between consecutive offsets in bytes. Default is 0 (tightly packed).
 		 */
-		BuildInputTriangles & setSbtIndexOffsets(ns::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
+		BuildInputTriangles & setSbtIndexOffsets(dev::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
 		{
 			OptixBuildInputTriangleArray::numSbtRecords = (strideInBytes == 0) ? static_cast<unsigned int>(offsetBuffer.size() / sizeInBytes) : static_cast<unsigned int>(offsetBuffer.size() / strideInBytes);
 			OptixBuildInputTriangleArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsetBuffer.data());
@@ -177,7 +178,7 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Set the SBT index offsets for the triangle build input.
 		 *	@param[in]	offsets - A span of raw integer types representing the SBT index offsets.
 		 */
-		template<IndexType Type> BuildInputTriangles & setSbtIndexOffsets(ns::Span<const Type> offsets)
+		template<IndexType Type> BuildInputTriangles & setSbtIndexOffsets(dev::Span<const Type> offsets)
 		{
 			OptixBuildInputTriangleArray::numSbtRecords = static_cast<unsigned int>(offsets.size());
 			OptixBuildInputTriangleArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsets.data());
@@ -265,7 +266,7 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	indexBuffer - A span of bytes representing the curve segment indices.
 		 *	@param[in]	strideInBytes - The stride between consecutive indices in bytes. Default is 0 (tightly packed).
 		 */
-		BuildInputCurves & setIndexBuffer(ns::Span<const ns::byte> indexBuffer, unsigned int strideInBytes = 0)
+		BuildInputCurves & setIndexBuffer(dev::Span<const ns::byte> indexBuffer, unsigned int strideInBytes = 0)
 		{
 			OptixBuildInputCurveArray::numPrimitives = (strideInBytes == 0) ? static_cast<unsigned int>(indexBuffer.size() / sizeof(unsigned int)) : static_cast<unsigned int>(indexBuffer.size() / strideInBytes);
 			OptixBuildInputCurveArray::indexBuffer = reinterpret_cast<CUdeviceptr>(indexBuffer.data());
@@ -279,7 +280,7 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Set the index buffer for the curve build input.
 		 *	@param[in]	indices - A span of unsigned integers representing the curve segment indices.
 		 */
-		BuildInputCurves & setIndexBuffer(ns::Span<const unsigned int> indices)
+		BuildInputCurves & setIndexBuffer(dev::Span<const unsigned int> indices)
 		{
 			OptixBuildInputCurveArray::numPrimitives = static_cast<unsigned int>(indices.size());
 			OptixBuildInputCurveArray::indexBuffer = reinterpret_cast<CUdeviceptr>(indices.data());
@@ -384,7 +385,7 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	sizeInBytes - The size of the offset buffer in bytes, needs to be 1, 2 or 4 (8, 16 or 32 bit).
 		 *	@param[in]	strideInBytes - The stride between consecutive offsets in bytes. Default is 0 (tightly packed).
 		 */
-		BuildInputSpheres & setSbtIndexOffsets(ns::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
+		BuildInputSpheres & setSbtIndexOffsets(dev::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
 		{
 			OptixBuildInputSphereArray::numSbtRecords = (strideInBytes == 0) ? static_cast<unsigned int>(offsetBuffer.size() / sizeInBytes) : static_cast<unsigned int>(offsetBuffer.size() / strideInBytes);
 			OptixBuildInputSphereArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsetBuffer.data());
@@ -399,7 +400,7 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Set the SBT index offsets for the sphere build input.
 		 *	@param[in]	offsets - A span of raw integer types representing the SBT index offsets.
 		 */
-		template<IndexType Type> BuildInputSpheres & setSbtIndexOffsets(ns::Span<const Type> offsets)
+		template<IndexType Type> BuildInputSpheres & setSbtIndexOffsets(dev::Span<const Type> offsets)
 		{
 			OptixBuildInputSphereArray::numSbtRecords = static_cast<unsigned int>(offsets.size());
 			OptixBuildInputSphereArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsets.data());
@@ -463,7 +464,7 @@ namespace PHOTON_NAMESPACE
 		 *	@param[in]	sizeInBytes - The size of the offset buffer in bytes, needs to be 1, 2 or 4 (8, 16 or 32 bit).
 		 *	@param[in]	strideInBytes - The stride between consecutive offsets in bytes. Default is 0 (tightly packed).
 		 */
-		BuildInputAabbs & setSbtIndexOffsets(ns::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
+		BuildInputAabbs & setSbtIndexOffsets(dev::Span<const ns::byte> offsetBuffer, unsigned int sizeInBytes, unsigned int strideInBytes = 0)
 		{
 			OptixBuildInputCustomPrimitiveArray::numSbtRecords = (strideInBytes == 0) ? static_cast<unsigned int>(offsetBuffer.size() / sizeInBytes) : static_cast<unsigned int>(offsetBuffer.size() / strideInBytes);
 			OptixBuildInputCustomPrimitiveArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsetBuffer.data());
@@ -478,7 +479,7 @@ namespace PHOTON_NAMESPACE
 		 *	@brief		Set the SBT index offsets for the custom primitive build input.
 		 *	@param[in]	offsets - A span of raw integer types representing the SBT index offsets.
 		 */
-		template<IndexType Type> BuildInputAabbs & setSbtIndexOffsets(ns::Span<const Type> offsets)
+		template<IndexType Type> BuildInputAabbs & setSbtIndexOffsets(dev::Span<const Type> offsets)
 		{
 			OptixBuildInputCustomPrimitiveArray::numSbtRecords = static_cast<unsigned int>(offsets.size());
 			OptixBuildInputCustomPrimitiveArray::sbtIndexOffsetBuffer = reinterpret_cast<CUdeviceptr>(offsets.data());

@@ -24,7 +24,7 @@
 #include "fwd.h"
 #include "sbt_record.h"
 #include <nucleus/span.h>
-#include <nucleus/device_pointer.h>
+#include <nucleus/device_span.h>
 #include <optix.h>
 #include <string>
 
@@ -165,7 +165,7 @@ namespace PHOTON_NAMESPACE
 		 *	@note		Multiple launches may be issued in parallel from multiple threads as long as they target different CUDA streams.
 		 *	@warning	The stream and pipeline must belong to the same device context.
 		 */
-		template<typename Type> ns::Stream & launch(ns::Stream & stream, ns::dev::Ptr<const Type> pipelineParams, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height = 1, unsigned int depth = 1)
+		template<typename Type> ns::Stream & launch(ns::Stream & stream, dev::Span<const Type> pipelineParams, const OptixShaderBindingTable & sbt, unsigned int width, unsigned int height = 1, unsigned int depth = 1)
 		{
 			this->doLaunch(stream, pipelineParams.data(), sizeof(Type), sbt, width, height, depth);
 
