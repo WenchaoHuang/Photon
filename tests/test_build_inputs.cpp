@@ -20,7 +20,8 @@
  *	SOFTWARE.
  */
 
-#include <nucleus/array_1d.h>
+#include <cassert>
+#include <cstdint>
 #include <photon/build_inputs.h>
 
 /*********************************************************************************
@@ -29,176 +30,141 @@
 
 void test_build_inputs()
 {
-	//	Triangle build input.
+	const auto radiusAddress = reinterpret_cast<const float*>(std::uintptr_t{ 0x2000 });
+	const auto aabbAddress = reinterpret_cast<const pt::Aabb*>(std::uintptr_t{ 0x5000 });
+	const auto vertexAddress = reinterpret_cast<const ns::float3*>(std::uintptr_t{ 0x1000 });
+	const auto indexAddress = reinterpret_cast<const unsigned int*>(std::uintptr_t{ 0x3000 });
+	const auto offsetAddress = reinterpret_cast<const unsigned short*>(std::uintptr_t{ 0x4000 });
+
+	const dev::Span<const ns::float3> vertices(vertexAddress, 12);
+	const dev::Span<const float> radii(radiusAddress, 12);
+	const dev::Span<const unsigned int> indices(indexAddress, 18);
+	const dev::Span<const unsigned short> offsets(offsetAddress, 6);
+	const dev::Span<const pt::Aabb> aabbs(aabbAddress, 7);
+	const dev::Span<const ns::byte> rawRadii[] = { ns::as_bytes(radii) };
+	const dev::Span<const ns::byte> rawAabbs[] = { ns::as_bytes(aabbs) };
+	const dev::Span<const ns::byte> rawVertices[] = { ns::as_bytes(vertices) };
+
+	// Typed triangle inputs infer all format, count and stride metadata.
 	pt::BuildInputTriangles triangles;
-	assert(triangles.numVertices == 0);
-	assert(triangles.indexBuffer == 0);
-	assert(triangles.numSbtRecords == 1);
-	assert(triangles.numIndexTriplets == 0);
-	assert(triangles.indexStrideInBytes == 0);
-	assert(triangles.vertexBuffers == nullptr);
-	assert(triangles.vertexStrideInBytes == 0);
-	assert(triangles.sbtIndexOffsetBuffer == 0);
-	assert(triangles.primitiveIndexOffset == 0);
-	assert(triangles.sbtIndexOffsetSizeInBytes == 0);
-	assert(triangles.sbtIndexOffsetStrideInBytes == 0);
-	assert(triangles.vertexFormat == OPTIX_VERTEX_FORMAT_NONE);
-	assert(triangles.indexFormat == OPTIX_INDICES_FORMAT_NONE);
+	triangles.setIndexBuffer(indices);
+	triangles.setVertexBuffer(vertices);
+	triangles.setSbtIndexOffsets(offsets);
+	triangles.setPrimitiveIndexOffset(11);
+	triangles.setGeometryFlags(OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT, 3);
+	auto triangleNative = triangles.native();
+	assert(triangleNative.vertexBuffers != nullptr);
+	assert(triangleNative.vertexBuffers[0] == reinterpret_cast<CUdeviceptr>(vertexAddress));
+	assert(triangleNative.vertexFormat == OPTIX_VERTEX_FORMAT_FLOAT3);
+	assert(triangleNative.vertexStrideInBytes == sizeof(ns::float3));
+	assert(triangleNative.numVertices == vertices.size());
+	assert(triangleNative.indexFormat == OPTIX_INDICES_FORMAT_UNSIGNED_INT3);
+	assert(triangleNative.indexStrideInBytes == 3 * sizeof(unsigned int));
+	assert(triangleNative.numIndexTriplets == indices.size() / 3);
+	assert(triangleNative.numSbtRecords == 3);
+	assert(triangleNative.flags[0] == OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT);
+	assert(triangleNative.sbtIndexOffsetSizeInBytes == sizeof(unsigned short));
+	assert(triangleNative.sbtIndexOffsetStrideInBytes == sizeof(unsigned short));
+	assert(triangleNative.primitiveIndexOffset == 11);
 
-	ns::Array<CUdeviceptr> triangleVertexBuffers;
-	assert(&triangles.setVertexBuffers({ triangleVertexBuffers.data(), triangleVertexBuffers.size() }, pt::VertexFormat::Float3, 16) == &triangles);
-	assert(triangles.vertexFormat == OPTIX_VERTEX_FORMAT_FLOAT3);
-	assert(triangles.vertexStrideInBytes == 0);
-	assert(triangles.numVertices == 16);
+	// A copied wrapper rebinds native host pointers to its own vector storage.
+	pt::BuildInputTriangles copiedTriangles = triangles;
+	auto copiedTriangleNative = copiedTriangles.native();
+	assert(copiedTriangleNative.vertexBuffers != triangleNative.vertexBuffers);
+	assert(copiedTriangleNative.flags != triangleNative.flags);
+	assert(copiedTriangleNative.vertexBuffers[0] == triangleNative.vertexBuffers[0]);
+	assert(copiedTriangleNative.flags[0] == triangleNative.flags[0]);
 
-	//	Scalar indices are grouped into triplets.
-	ns::Array<unsigned short> triangleIndices;
-	assert(&triangles.setIndexBuffer(triangleIndices.span()) == &triangles);
-	assert(triangles.indexFormat == OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3);
-	assert(triangles.numIndexTriplets == triangleIndices.size());
-	assert(triangles.indexStrideInBytes == 0);
+	// Raw interfaces preserve explicitly supplied layout metadata.
+	const dev::Span<const ns::byte> rawIndices(reinterpret_cast<const ns::byte*>(indexAddress), 32);
+	triangles.setIndexBuffer(rawIndices, pt::IndicesFormat::Ushort3, 8);
+	triangleNative = triangles.native();
+	assert(triangleNative.indexFormat == OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3);
+	assert(triangleNative.indexStrideInBytes == 8);
+	assert(triangleNative.numIndexTriplets == 4);
+	triangles.setVertexBuffers(rawVertices, pt::VertexFormat::Float3, 9, 16);
+	triangleNative = triangles.native();
+	assert(triangleNative.vertexBuffers[0] == reinterpret_cast<CUdeviceptr>(vertexAddress));
+	assert(triangleNative.numVertices == 9);
+	assert(triangleNative.vertexStrideInBytes == 16);
 
-	//	Triplet types preserve their element stride.
-	ns::Array<ns::uint3> triangleIndexTriplets;
-	assert(&triangles.setIndexBuffer(triangleIndexTriplets.span()) == &triangles);
-	assert(triangles.indexFormat == OPTIX_INDICES_FORMAT_UNSIGNED_INT3);
-	assert(triangles.numIndexTriplets == triangleIndexTriplets.size());
-	assert(triangles.indexStrideInBytes == sizeof(ns::uint3));
+	// Setting an offset buffer is independent from the SBT record count.
+	triangles.setSbtIndexOffsets(offsets);
+	triangles.setGeometryFlags(OPTIX_GEOMETRY_FLAG_NONE, 5);
+	assert(triangles.native().numSbtRecords == 5);
 
-	ns::Array<ns::byte> stridedTriangleIndices;
-	assert(&triangles.setIndexBuffer(stridedTriangleIndices.span(), pt::IndicesFormat::Ushort3, 8) == &triangles);
-	assert(triangles.indexFormat == OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3);
-	assert(triangles.numIndexTriplets == stridedTriangleIndices.size());
-	assert(triangles.indexStrideInBytes == 8);
-
-	ns::Array<unsigned short> triangleSbtIndices;
-	assert(&triangles.setSbtIndexOffsets(triangleSbtIndices) == &triangles);
-	assert(triangles.sbtIndexOffsetSizeInBytes == sizeof(unsigned short));
-	assert(triangles.numSbtRecords == triangleSbtIndices.size());
-	assert(triangles.sbtIndexOffsetStrideInBytes == 0);
-
-	ns::Array<ns::byte> stridedTriangleSbtIndices;
-	assert(&triangles.setSbtIndexOffsets(stridedTriangleSbtIndices, 2, 3) == &triangles);
-	assert(triangles.numSbtRecords == stridedTriangleSbtIndices.size());
-	assert(triangles.sbtIndexOffsetStrideInBytes == 3);
-	assert(triangles.sbtIndexOffsetSizeInBytes == 2);
-
-	assert(&triangles.setPrimitiveIndexOffset(11) == &triangles);
-	assert(triangles.primitiveIndexOffset == 11);
-
-	//	Sphere build input.
+	// Sphere inputs own both host-side device-pointer arrays and the flag array.
 	pt::BuildInputSpheres spheres;
-	assert(spheres.numVertices == 0);
-	assert(spheres.singleRadius == 0);
-	assert(spheres.numSbtRecords == 1);
-	assert(spheres.vertexBuffers == nullptr);
-	assert(spheres.radiusBuffers == nullptr);
-	assert(spheres.radiusStrideInBytes == 0);
-	assert(spheres.vertexStrideInBytes == 0);
-	assert(spheres.sbtIndexOffsetBuffer == 0);
-	assert(spheres.primitiveIndexOffset == 0);
-	assert(spheres.sbtIndexOffsetSizeInBytes == 0);
-	assert(spheres.sbtIndexOffsetStrideInBytes == 0);
-
-	ns::Array<CUdeviceptr> vertexBuffers;
-	assert(&spheres.setVertexBuffers({ vertexBuffers.data(), vertexBuffers.size() }, 32, 16) == &spheres);
-	assert(spheres.vertexStrideInBytes == 16);
-	assert(spheres.numVertices == 32);
-
-	ns::Array<CUdeviceptr> radiusBuffers;
-	assert(&spheres.setRadiusBuffers({ radiusBuffers.data(), radiusBuffers.size() }, true, 8) == &spheres);
-	assert(spheres.radiusStrideInBytes == 8);
-	assert(spheres.singleRadius == 1);
-
-	ns::Array<unsigned short> sbtIndices;
-	assert(&spheres.setSbtIndexOffsets(sbtIndices) == &spheres);
-	assert(spheres.sbtIndexOffsetSizeInBytes == sizeof(unsigned short));
-	assert(spheres.numSbtRecords == sbtIndices.size());
-	assert(spheres.sbtIndexOffsetStrideInBytes == 0);
-
-	ns::Array<ns::byte> stridedSbtIndices;
-	assert(&spheres.setSbtIndexOffsets(stridedSbtIndices, 2, 3) == &spheres);
-	assert(spheres.numSbtRecords == stridedSbtIndices.size());
-	assert(spheres.sbtIndexOffsetStrideInBytes == 3);
-	assert(spheres.sbtIndexOffsetSizeInBytes == 2);
-
-	assert(&spheres.setPrimitiveIndexOffset(17) == &spheres);
-	assert(spheres.primitiveIndexOffset == 17);
+	spheres.setRadiusBuffer(radii);
+	spheres.setVertexBuffer(vertices);
+	spheres.setSbtIndexOffsets(offsets);
+	spheres.setPrimitiveIndexOffset(17);
+	spheres.setGeometryFlags(OPTIX_GEOMETRY_FLAG_NONE, 2);
+	auto sphereNative = spheres.native();
+	assert(sphereNative.vertexBuffers[0] == reinterpret_cast<CUdeviceptr>(vertexAddress));
+	assert(sphereNative.radiusBuffers[0] == reinterpret_cast<CUdeviceptr>(radiusAddress));
+	assert(sphereNative.vertexStrideInBytes == sizeof(ns::float3));
+	assert(sphereNative.radiusStrideInBytes == sizeof(float));
+	assert(sphereNative.numVertices == vertices.size());
+	assert(sphereNative.numSbtRecords == 2);
+	assert(sphereNative.sbtIndexOffsetSizeInBytes == sizeof(unsigned short));
+	assert(sphereNative.sbtIndexOffsetStrideInBytes == sizeof(unsigned short));
+	assert(sphereNative.primitiveIndexOffset == 17);
+	spheres.setVertexBuffers(rawVertices, 9, 16);
+	spheres.setRadiusBuffers(rawRadii, false, 8);
+	sphereNative = spheres.native();
+	assert(sphereNative.numVertices == 9);
+	assert(sphereNative.vertexStrideInBytes == 16);
+	assert(sphereNative.radiusStrideInBytes == 8);
 
 #if OPTIX_VERSION >= 70100
-	//	Curve build input.
+	// Curve inputs infer typed buffer strides while retaining raw index control.
+	const auto curveVertexAddress = reinterpret_cast<const ns::float4*>(std::uintptr_t{ 0x6000 });
+	const dev::Span<const ns::float4> curveVertices(curveVertexAddress, 9);
+	const dev::Span<const ns::byte> rawCurveVertices[] = { ns::as_bytes(curveVertices) };
 	pt::BuildInputCurves curves;
-	assert(curves.flag == 0);
-	assert(curves.numVertices == 0);
-	assert(curves.indexBuffer == 0);
-	assert(curves.endcapFlags == 0);
-	assert(curves.numPrimitives == 0);
-	assert(curves.widthStrideInBytes == 0);
-	assert(curves.indexStrideInBytes == 0);
-	assert(curves.widthBuffers == nullptr);
-	assert(curves.vertexBuffers == nullptr);
-	assert(curves.vertexStrideInBytes == 0);
-	assert(curves.primitiveIndexOffset == 0);
-	assert(curves.curveType == static_cast<OptixPrimitiveType>(0));
-
-	assert(&curves.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE) == &curves);
-	assert(curves.curveType == OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
-
-	ns::Array<CUdeviceptr> curveVertexBuffers;
-	assert(&curves.setVertexBuffers({ curveVertexBuffers.data(), curveVertexBuffers.size() }, 48, 16) == &curves);
-	assert(curves.vertexStrideInBytes == 16);
-	assert(curves.numVertices == 48);
-
-	ns::Array<CUdeviceptr> curveWidthBuffers;
-	assert(&curves.setWidthBuffers({ curveWidthBuffers.data(), curveWidthBuffers.size()}, 8) == &curves);
-	assert(curves.widthStrideInBytes == 8);
-
-	ns::Array<unsigned int> curveIndices;
-	assert(&curves.setIndexBuffer(curveIndices) == &curves);
-	assert(curves.numPrimitives == curveIndices.size());
-	assert(curves.indexStrideInBytes == 0);
-
-	ns::Array<ns::byte> stridedCurveIndices;
-	assert(&curves.setIndexBuffer(stridedCurveIndices, 8) == &curves);
-	assert(curves.numPrimitives == stridedCurveIndices.size());
-	assert(curves.indexStrideInBytes == 8);
-
-	assert(&curves.setGeometryFlags(OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT) == &curves);
-	assert(curves.flag == OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT);
-	assert(&curves.setEndcapFlags(OPTIX_CURVE_ENDCAP_ON) == &curves);
-	assert(curves.endcapFlags == OPTIX_CURVE_ENDCAP_ON);
-	assert(&curves.setPrimitiveIndexOffset(23) == &curves);
-	assert(curves.primitiveIndexOffset == 23);
+	curves.setWidthBuffer(radii);
+	curves.setIndexBuffer(indices);
+	curves.setPrimitiveIndexOffset(23);
+	curves.setVertexBuffers(curveVertices);
+	curves.setEndcapFlags(OPTIX_CURVE_ENDCAP_ON);
+	curves.setGeometryFlags(OPTIX_GEOMETRY_FLAG_NONE);
+	curves.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
+	auto curveNative = curves.native();
+	assert(curveNative.vertexBuffers[0] == reinterpret_cast<CUdeviceptr>(curveVertexAddress));
+	assert(curveNative.widthBuffers[0] == reinterpret_cast<CUdeviceptr>(radiusAddress));
+	assert(curveNative.vertexStrideInBytes == sizeof(ns::float4));
+	assert(curveNative.widthStrideInBytes == sizeof(float));
+	assert(curveNative.indexStrideInBytes == sizeof(unsigned int));
+	assert(curveNative.numVertices == curveVertices.size());
+	assert(curveNative.numPrimitives == indices.size());
+	assert(curveNative.flag == OPTIX_GEOMETRY_FLAG_NONE);
+	assert(curveNative.endcapFlags == OPTIX_CURVE_ENDCAP_ON);
+	assert(curveNative.primitiveIndexOffset == 23);
+	curves.setVertexBuffers(rawCurveVertices, 7, 20);
+	curves.setWidthBuffers(rawRadii, 8);
+	curveNative = curves.native();
+	assert(curveNative.numVertices == 7);
+	assert(curveNative.vertexStrideInBytes == 20);
+	assert(curveNative.widthStrideInBytes == 8);
 #endif
 
-	//	AABB build input.
-	pt::BuildInputAabbs aabbs;
-	assert(aabbs.numPrimitives == 0);
-	assert(aabbs.strideInBytes == 0);
-	assert(aabbs.numSbtRecords == 1);
-	assert(aabbs.aabbBuffers == nullptr);
-	assert(aabbs.sbtIndexOffsetBuffer == 0);
-	assert(aabbs.primitiveIndexOffset == 0);
-	assert(aabbs.sbtIndexOffsetSizeInBytes == 0);
-	assert(aabbs.sbtIndexOffsetStrideInBytes == 0);
-
-	ns::Array<CUdeviceptr> aabbBuffers;
-	assert(&aabbs.setAabbBuffers({ aabbBuffers.data(), aabbBuffers.size() }, 24, sizeof(pt::Aabb)) == &aabbs);
-	assert(aabbs.strideInBytes == sizeof(pt::Aabb));
-	assert(aabbs.numPrimitives == 24);
-
-	ns::Array<unsigned char> aabbSbtIndices;
-	assert(&aabbs.setSbtIndexOffsets(aabbSbtIndices) == &aabbs);
-	assert(aabbs.sbtIndexOffsetSizeInBytes == sizeof(unsigned char));
-	assert(aabbs.numSbtRecords == aabbSbtIndices.size());
-	assert(aabbs.sbtIndexOffsetStrideInBytes == 0);
-
-	ns::Array<ns::byte> stridedAabbSbtIndices;
-	assert(&aabbs.setSbtIndexOffsets(stridedAabbSbtIndices, 2, 4) == &aabbs);
-	assert(aabbs.numSbtRecords == stridedAabbSbtIndices.size());
-	assert(aabbs.sbtIndexOffsetStrideInBytes == 4);
-	assert(aabbs.sbtIndexOffsetSizeInBytes == 2);
-
-	assert(&aabbs.setPrimitiveIndexOffset(29) == &aabbs);
-	assert(aabbs.primitiveIndexOffset == 29);
+	// Typed AABB inputs infer primitive count and element stride.
+	pt::BuildInputAabbs customPrimitives;
+	customPrimitives.setAabbBuffer(aabbs);
+	customPrimitives.setSbtIndexOffsets(offsets);
+	customPrimitives.setPrimitiveIndexOffset(29);
+	customPrimitives.setGeometryFlags(OPTIX_GEOMETRY_FLAG_NONE, 4);
+	auto aabbNative = customPrimitives.native();
+	assert(aabbNative.aabbBuffers[0] == reinterpret_cast<CUdeviceptr>(aabbAddress));
+	assert(aabbNative.numPrimitives == aabbs.size());
+	assert(aabbNative.strideInBytes == sizeof(pt::Aabb));
+	assert(aabbNative.numSbtRecords == 4);
+	assert(aabbNative.sbtIndexOffsetSizeInBytes == sizeof(unsigned short));
+	assert(aabbNative.sbtIndexOffsetStrideInBytes == sizeof(unsigned short));
+	assert(aabbNative.primitiveIndexOffset == 29);
+	customPrimitives.setAabbBuffers(rawAabbs, 5, 32);
+	aabbNative = customPrimitives.native();
+	assert(aabbNative.numPrimitives == 5);
+	assert(aabbNative.strideInBytes == 32);
 }

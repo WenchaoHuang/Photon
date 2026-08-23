@@ -1,4 +1,4 @@
-﻿/**
+/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -93,15 +93,8 @@ int main()
 
 	//	accel-struct
 	pt::AccelStructAabb accelStruct(deviceContext);
-	CUdeviceptr aabbPtr = (CUdeviceptr)aabbBuffer.data();
-	unsigned int aabbFlags = OPTIX_GEOMETRY_FLAG_NONE;
-
-	OptixBuildInputCustomPrimitiveArray		buildInput = {};
-	buildInput.aabbBuffers                  = &aabbPtr;
-	buildInput.numPrimitives                = static_cast<unsigned int>(count);
-	buildInput.numSbtRecords                = 1;
-	buildInput.flags                        = &aabbFlags;
-	buildInput.strideInBytes                = sizeof(pt::Aabb);
+	pt::BuildInputAabbs buildInput;
+	buildInput.setAabbBuffer(aabbBuffer.span());
 
 	pt::AccelStruct::BuildOptions buildOptions = { .headerSize = 200 };
 

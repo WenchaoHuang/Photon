@@ -108,18 +108,11 @@ static void buildTriangleGAS(pt::AccelStructTriangle & accelStruct,
 	stream.memcpy(vertexBuffer.data(), vertices.data(), vertices.size());
 	stream.memcpy(indexBuffer.data(), indices.data(), indices.size());
 
-	CUdeviceptr vertexPtr = (CUdeviceptr)vertexBuffer.data();
-	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
-
 	pt::BuildInputTriangles buildInput;
 	buildInput.setIndexBuffer(indexBuffer.span());
-	buildInput.setVertexBuffers({ vertexPtr }, pt::VertexFormat::Float3, vertices.size());
-	buildInput.setPrimitiveIndexOffset(0);
-	buildInput.flags = &flags;
+	buildInput.setVertexBuffer(vertexBuffer.span());
 
-	pt::AccelStruct::BuildOptions buildOptions = {};
-
-	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, {});
 }
 
 /*********************************************************************************
@@ -144,18 +137,11 @@ static void buildSphereGAS(pt::AccelStructSphere & accelStruct,
 	stream.memcpy(centerBuffer.data(), centers.data(), centers.size());
 	stream.memcpy(radiusBuffer.data(), radii.data(), radii.size());
 
-	CUdeviceptr centerPtr = (CUdeviceptr)centerBuffer.data();
-	CUdeviceptr radiusPtr = (CUdeviceptr)radiusBuffer.data();
-	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
-
 	pt::BuildInputSpheres buildInput;
-	buildInput.setVertexBuffers({ centerPtr }, centers.size());
-	buildInput.setRadiusBuffers({ radiusPtr }, false);
-	buildInput.flags = &flags;
+	buildInput.setVertexBuffer(centerBuffer.span());
+	buildInput.setRadiusBuffer(radiusBuffer.span());
 
-	pt::AccelStruct::BuildOptions buildOptions = {};
-
-	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, {});
 }
 
 /*********************************************************************************
@@ -192,22 +178,14 @@ static void buildCurveGAS(pt::AccelStructCurve & accelStruct,
 	stream.memcpy(curveWidthBuffer.data(), widths.data(), widths.size());
 	stream.memcpy(curveIndexBuffer.data(), segmentIndices.data(), segmentIndices.size());
 
-	CUdeviceptr controlPointPtr = (CUdeviceptr)controlPointBuffer.data();
-	CUdeviceptr widthPtr = (CUdeviceptr)curveWidthBuffer.data();
-	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
-
 	pt::BuildInputCurves buildInput;
-	buildInput.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
-	buildInput.setVertexBuffers({ controlPointPtr }, controlPoints.size(), sizeof(float4));
-	buildInput.setWidthBuffers({ widthPtr }, sizeof(float));
-	buildInput.setIndexBuffer(curveIndexBuffer.span());
-	buildInput.setGeometryFlags(flags);
-	buildInput.setPrimitiveIndexOffset(0);
 	buildInput.setEndcapFlags(OPTIX_CURVE_ENDCAP_DEFAULT);
+	buildInput.setCurveType(OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE);
+	buildInput.setVertexBuffers(controlPointBuffer.span());
+	buildInput.setWidthBuffer(curveWidthBuffer.span());
+	buildInput.setIndexBuffer(curveIndexBuffer.span());
 
-	pt::AccelStruct::BuildOptions buildOptions = {};
-
-	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, {});
 }
 
 /*********************************************************************************
@@ -246,16 +224,10 @@ static void buildAabbGAS(pt::AccelStructAabb & accelStruct,
 	stream.memcpy(aabbBuffer.data(), aabbs.data(), aabbs.size());
 	stream.memcpy(aabbCenterBuffer.data(), centers.data(), centers.size());
 
-	CUdeviceptr aabbPtr = (CUdeviceptr)aabbBuffer.data();
-	unsigned int flags = OPTIX_GEOMETRY_FLAG_NONE;
-
 	pt::BuildInputAabbs buildInput;
-	buildInput.setAabbBuffers({ aabbPtr }, aabbs.size(), sizeof(pt::Aabb));
-	buildInput.flags = &flags;
+	buildInput.setAabbBuffer(aabbBuffer.span());
 
-	pt::AccelStruct::BuildOptions buildOptions = {};
-
-	accelStruct.build(stream, allocator, { buildInput }, buildOptions);
+	accelStruct.build(stream, allocator, { buildInput }, {});
 }
 
 /*********************************************************************************
