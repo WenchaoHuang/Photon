@@ -206,7 +206,7 @@ namespace PHOTON_NAMESPACE
 					m_native.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_BYTE3;
 				else if constexpr (ns::short3_like<Type> || ns::ushort3_like<Type>)
 					m_native.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3;
-				else if constexpr (ns::int3_like<Type> || ns::ushort3_like<Type>)
+				else if constexpr (ns::int3_like<Type> || ns::uint3_like<Type>)
 					m_native.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
 			}
 			return *this;
